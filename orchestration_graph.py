@@ -2,7 +2,7 @@ import os
 from typing import TypedDict, List, Dict, Any, Optional
 import pandas as pd
 from langgraph.graph import StateGraph, END
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 
 from data_pipeline import load_facility_json, list_available_facilities
@@ -27,7 +27,15 @@ class HeatSyncState(TypedDict):
 # --- 2. Node Functions ---
 def node_ingest_data(state: HeatSyncState) -> Dict[str, Any]:
     try:
-        meta, df = load_facility_json(state["facility_name"])
+        use_cache = state.get("use_cache", True)
+        if use_cache:
+            meta, df = load_facility_json(state["facility_name"])
+        else:
+            from data_pipeline import fetch_facility_data, FACILITY_REGISTRY
+            date_str = state.get("date_str", "2024-07-15")
+            time_str = state.get("time_str", "14:00")
+            df = fetch_facility_data(state["facility_name"], date_str=date_str, time_str=time_str, use_cache=False)
+            meta = FACILITY_REGISTRY[state["facility_name"].upper()]
         return {"facility_meta": meta, "raw_df": df}
     except Exception as e:
         return {"errors": [f"Ingestion error: {str(e)}"]}
@@ -90,7 +98,7 @@ def node_synthesize_narrative(state: HeatSyncState) -> Dict[str, Any]:
     kpis = state["kpis"]
     meta = state["facility_meta"]
     
-    token = os.getenv("GITHUB_TOKEN") or os.getenv("OPENAI_API_KEY", "dummy_token")
+    google_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY", "")
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", "You are HeatSync AI, an expert thermal copilot for mission-critical data center cooling operations."),
@@ -113,12 +121,11 @@ def node_synthesize_narrative(state: HeatSyncState) -> Dict[str, Any]:
     ])
     
     try:
-        llm = ChatOpenAI(
-            model="gpt-4o",
-            base_url="https://models.inference.ai.azure.com",
-            api_key=token,
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-3.7-flash",
+            google_api_key=google_api_key,
             temperature=0.3,
-            max_tokens=200
+            max_output_tokens=200
         )
         chain = prompt | llm
         response = chain.invoke({
@@ -166,3 +173,4 @@ def build_heatsync_graph():
     return workflow.compile()
 
 heatsync_pipeline_app = build_heatsync_graph()
+app = heatsync_pipeline_app
