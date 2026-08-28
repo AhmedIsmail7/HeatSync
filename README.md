@@ -43,7 +43,7 @@ HeatSync orchestrates data ingestion, psychrometric physics calculations, financ
 │  [Node 5: Dynamic Cross-Facility Workload Router]       │
 │                           │                              │
 │                           ▼                              │
-│  [Node 6: LangChain + GPT-4o Narrative Synthesis]       │
+│  [Node 6: LangChain + Gemini 3.7 Flash Synthesis]       │
 └───────────────────────────┬───────────────────────────-─┘
                              │
                              ▼
@@ -146,7 +146,7 @@ class HeatSyncState(TypedDict):
 3. `node_compute_efficiency` — Calculates delta PUE, $, and kg CO₂e across the 24-hour horizon.
 4. `node_scan_alerts` — Evaluates the upcoming 12-hour window (T+1h to T+12h) for thermal risks (T_apparent ≥ 28°C) and particulate spikes (PM2.5 ≥ 58).
 5. `node_compute_workload_dispatch` — Checks regional peer facilities when the local site requires DX chillers; flags candidate sites for compute workload migration.
-6. `node_synthesize_narrative` — Calls `gpt-4o` via LangChain `ChatPromptTemplate` with automated deterministic fallback on network/credential exception.
+6. `node_synthesize_narrative` — Calls `gemini-3.7-flash` via LangChain `ChatGoogleGenerativeAI` (authenticated via `GOOGLE_API_KEY`) with automated deterministic fallback on network/credential exception.
 
 ### 3.5. Dynamic Workload Dispatch Optimization
 
@@ -163,15 +163,23 @@ If an alternate site (e.g., San José, CA) is currently in Free-Air Economizer m
 │   ├── ashburn_env.json          # FortyGuard API environmental output for Ashburn, VA
 │   ├── phoenix_env.json          # Multi-facility benchmark dataset for Phoenix, AZ
 │   └── sanjose_env.json          # Multi-facility benchmark dataset for San José, CA
+├── tests/                        # 69 automated unit & integration tests
+│   ├── test_api_client.py        # FortyGuard client polling & error handling tests
+│   └── test_data_pipeline.py     # Registry, AOI polygon, normalization & cache tests
 ├── alert_engine.py               # 12-hour lookahead risk & threshold detection
 ├── comparison_engine.py          # DATS-style side-by-side facility benchmarking
 ├── cooling_engine.py             # ASHRAE thermal comfort & psychrometric rules
 ├── data_pipeline.py              # Ingestion layer & facility metadata registry
 ├── efficiency_model.py           # PUE delta math, financial cost & carbon model
-├── narrative_engine.py           # LLM operational brief generator (GPT-4o fallback)
-├── orchestration_graph.py        # LangGraph StateGraph pipeline compilation
+├── fortyguard_client.py          # FortyGuard REST API client with exponential backoff
+├── narrative_engine.py           # Gemini 3.7 Flash operational narrative generator
+├── orchestration_graph.py        # LangGraph StateGraph 6-node pipeline compilation
 ├── pipeline.py                   # Master entrypoint & bridge to frontend
 ├── app.py                        # Streamlit visual analytics dashboard
+├── test_live_dispatch.py         # Real-time UTC live ingestion & LangGraph test
+├── test_apis.py                  # API key & endpoint smoke testing script
+├── .env.example                  # Environment variables template
+├── .gitignore                    # Secrets & cache ignore rules
 ├── requirements.txt              # Project dependencies
 └── README.md                     # Comprehensive system documentation
 ```
@@ -199,22 +207,39 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 5.2. LLM Authentication (Optional)
+### 5.2. Environment Configuration
 
-To enable live GPT-4o synthesis via GitHub Models or OpenAI:
+Copy the template `.env.example` file to `.env` and fill in your API credentials:
 
 ```bash
-# Windows PowerShell:
-$env:GITHUB_TOKEN="ghp_your_personal_access_token"
-# macOS/Linux:
-export GITHUB_TOKEN="ghp_your_personal_access_token"
+cp .env.example .env
 ```
 
-*(Note: If no token is provided, the pipeline's built-in fallback triggers automatically, delivering deterministic operational briefs without error.)*
+Edit `.env`:
 
-### 5.3. Execute and Verify the Backend Pipeline
+```ini
+# ─── FortyGuard API ───
+FORTYGUARD_API_KEY=your_fortyguard_api_key_here
+
+# ─── Google Gemini (used by narrative_engine & orchestration_graph) ───
+GOOGLE_API_KEY=your_google_api_key_here
+```
+
+*(Note: If no API keys are provided, the pipeline automatically defaults to offline cached climate benchmarks and deterministic narrative generation without throwing errors.)*
+
+### 5.3. Execute Automated Tests & Live Verification
 
 ```bash
+# Run full 69-test suite
+pytest
+
+# Test live API credentials & endpoints
+python test_apis.py
+
+# Test real-time live ingestion and LangGraph dispatch
+python test_live_dispatch.py
+
+# Run master pipeline verification
 python pipeline.py
 ```
 
