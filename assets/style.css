@@ -1,0 +1,366 @@
+/* FortyGuard – Data Center Cooling Intelligence Theme
+   Visual Aesthetic: Modern Light Theme, Sky-Blue & Tech-inspired
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+    --bg-main: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --primary-sky: #0284C7;
+    --primary-sky-light: #E0F2FE;
+    --primary-sky-hover: #0369A1;
+    --primary-sky-dark: #075985;
+    
+    --text-navy: #0F172A;
+    --text-slate: #475569;
+    --text-muted: #64748B;
+    
+    --border-light: #E2E8F0;
+    --border-subtle: #CBD5E1;
+    
+    --mode-free-air: #0D9488;
+    --mode-free-air-bg: #CCFBF1;
+    --mode-evaporative: #0284C7;
+    --mode-evaporative-bg: #E0F2FE;
+    --mode-dx: #E11D48;
+    --mode-dx-bg: #FFE4E6;
+    
+    --risk-safe: #10B981;
+    --risk-safe-bg: #ECFDF5;
+    --risk-warning: #F59E0B;
+    --risk-warning-bg: #FEF3C7;
+    --risk-critical: #EF4444;
+    --risk-critical-bg: #FEF2F2;
+    
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+    --shadow-md: 0 4px 12px rgba(2, 132, 199, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 10px 25px -5px rgba(2, 132, 199, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+}
+
+/* Global Font and Body */
+html, body, [class*="st-"] {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text-navy);
+}
+
+code, kbd, samp, pre {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Top App Header Banner */
+.fortyguard-header {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 100%);
+    border: 1px solid #BAE6FD;
+    border-radius: 16px;
+    padding: 1.25rem 1.75rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #0284C7;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.facility-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: currentColor;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulse-ring 2s infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+/* KPI Card Grid */
+.kpi-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    padding: 1.25rem 1.25rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s ease-in-out;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: #BAE6FD;
+}
+
+.kpi-card.highlight {
+    border-left: 4px solid var(--primary-sky);
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+}
+
+.kpi-card.danger {
+    border-left: 4px solid var(--risk-critical);
+}
+
+.kpi-card.warning {
+    border-left: 4px solid var(--risk-warning);
+}
+
+.kpi-card.success {
+    border-left: 4px solid var(--risk-safe);
+}
+
+.kpi-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.kpi-value {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: var(--text-navy);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+.kpi-unit {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-slate);
+    margin-left: 2px;
+}
+
+.kpi-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 0.4rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.delta-positive {
+    background-color: #ECFDF5;
+    color: #065F46;
+}
+
+.delta-negative {
+    background-color: #FEF2F2;
+    color: #991B1B;
+}
+
+.delta-neutral {
+    background-color: #F1F5F9;
+    color: #475569;
+}
+
+/* Mode Badges */
+.mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.mode-free-air-badge {
+    background: #CCFBF1;
+    color: #0F766E;
+    border: 1px solid #99F6E4;
+}
+
+.mode-evaporative-badge {
+    background: #E0F2FE;
+    color: #0369A1;
+    border: 1px solid #BAE6FD;
+}
+
+.mode-dx-badge {
+    background: #FFE4E6;
+    color: #BE123C;
+    border: 1px solid #FECDD3;
+}
+
+/* AI Narrative & Alert Panel Styling */
+.ai-narrative-card {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F0F9FF 100%);
+    border: 1px solid #BAE6FD;
+    border-radius: 14px;
+    padding: 1.35rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1rem;
+}
+
+.ai-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #0284C7;
+    color: white;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.alert-item {
+    border-radius: 10px;
+    padding: 1rem 1.15rem;
+    margin-bottom: 0.75rem;
+    border-left: 4px solid;
+    background: #FFFFFF;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.alert-info {
+    border-left-color: #0284C7;
+    background: #F0F9FF;
+}
+
+.alert-warning {
+    border-left-color: #F59E0B;
+    background: #FFFBEB;
+}
+
+.alert-critical {
+    border-left-color: #EF4444;
+    background: #FEF2F2;
+}
+
+/* Secondary Environmental Strip */
+.env-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.75rem;
+    background: #F1F5F9;
+    padding: 0.75rem;
+    border-radius: 12px;
+    margin: 1rem 0;
+}
+
+.env-item {
+    background: #FFFFFF;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid var(--border-light);
+}
+
+.env-item-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.env-item-value {
+    font-size: 1.05rem;
+    color: var(--text-navy);
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+/* Custom section headers */
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-navy);
+    margin: 1.5rem 0 0.75rem 0;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* Sidebar styling improvements */
+[data-testid="stSidebar"] {
+    background-color: #FFFFFF !important;
+    border-right: 1px solid var(--border-light) !important;
+}
+
+[data-testid="stSidebar"] .stSelectbox label {
+    font-weight: 700;
+    color: var(--text-navy);
+}
+
+/* Streamlit tab styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+    border-bottom: 2px solid var(--border-light);
+}
+
+.stTabs [data-baseweb="tab"] {
+    padding: 10px 18px;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-slate);
+    border: none;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: #E0F2FE !important;
+    color: #0369A1 !important;
+    font-weight: 700 !important;
+}
+
+/* DATS comparison matrix table tweaks */
+.dataframe {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    border: 1px solid var(--border-light) !important;
+}
