@@ -28,31 +28,39 @@ def generate_risk_narrative(current_row: dict, kpis: dict, facility_meta: dict) 
         """)
     ])
 
-    try:
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-3.7-flash",
-            google_api_key=google_api_key,
-            temperature=0.3,
-            max_output_tokens=200
-        )
-        chain = prompt | llm
-        response = chain.invoke({
-            "name": facility_meta["name"],
-            "timestamp": current_row["timestamp"],
-            "temp": current_row["apparent_temperature_celsius"],
-            "wet_bulb": current_row["wet_bulb_temperature_celsius"],
-            "pm25": current_row["air_quality_pm2p5_idx"],
-            "co2": current_row.get("co2_ppm", "N/A"),
-            "mode": current_row["recommended_mode"],
-            "reason": current_row["mode_reason"],
-            "eco_hours": kpis["eco_hours"],
-            "daily_savings": kpis["total_savings_usd"],
-            "co2_tons": kpis["total_co2_tons"]
-        })
-        return str(response.content).strip()
-    except Exception:
-        return (
-            f"{facility_meta['name']} is currently operating under {current_row['recommended_mode']} at {current_row['timestamp']}. "
-            f"Active dispatch is dictated by current thermal conditions ({current_row['apparent_temperature_celsius']}°C apparent, {current_row['wet_bulb_temperature_celsius']}°C wet-bulb). "
-            f"Over the full 24-hour cycle, dynamic mode switching delivers an estimated ${kpis['total_savings_usd']:,.2f} in avoided cooling costs."
-        )
+    # Try popular active Gemini models in order of capability & availability
+    models_to_try = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-pro"]
+    
+    for model_name in models_to_try:
+        try:
+            llm = ChatGoogleGenerativeAI(
+                model=model_name,
+                google_api_key=google_api_key,
+                temperature=0.3,
+                max_output_tokens=1024,
+            )
+            chain = prompt | llm
+            response = chain.invoke({
+                "name": facility_meta["name"],
+                "timestamp": current_row["timestamp"],
+                "temp": current_row["apparent_temperature_celsius"],
+                "wet_bulb": current_row["wet_bulb_temperature_celsius"],
+                "pm25": current_row["air_quality_pm2p5_idx"],
+                "co2": current_row.get("co2_ppm", "N/A"),
+                "mode": current_row["recommended_mode"],
+                "reason": current_row["mode_reason"],
+                "eco_hours": kpis["eco_hours"],
+                "daily_savings": kpis["total_savings_usd"],
+                "co2_tons": kpis["total_co2_tons"],
+            })
+            if response and response.content:
+                return str(response.content).strip()
+        except Exception:
+            continue
+
+    # Clean fallback if all remote calls fail or no key is present
+    return (
+        f"{facility_meta['name']} is currently operating under {current_row['recommended_mode']} at {current_row['timestamp']}. "
+        f"Active dispatch is dictated by current thermal conditions ({current_row['apparent_temperature_celsius']}°C apparent, {current_row['wet_bulb_temperature_celsius']}°C wet-bulb). "
+        f"Over the full 24-hour cycle, dynamic mode switching delivers an estimated ${kpis['total_savings_usd']:,.2f} in avoided cooling costs."
+    )

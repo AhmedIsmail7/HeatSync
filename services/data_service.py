@@ -153,46 +153,57 @@ class DataService:
         }
 
     def get_multi_facility_comparison(self, temp_offset: float = 0.0) -> pd.DataFrame:
-        """Run multi-facility benchmarking table using comparison_engine.
+        """Run multi-facility benchmarking table with dynamically computed site metrics."""
+        facilities = list_available_facilities()
+        rows = []
+        
+        for fac_id in facilities:
+            meta, df = load_facility_json(fac_id)
+            if temp_offset != 0.0:
+                df["apparent_temperature_celsius"] = df["apparent_temperature_celsius"] + temp_offset
+                df["wet_bulb_temperature_celsius"] = df["wet_bulb_temperature_celsius"] + (temp_offset * 0.7)
+            
+            df = apply_cooling_rules(df)
+            rate = float(meta.get("utility_rate_kwh", meta.get("electricity_rate_kwh", 0.085)))
+            it_load = float(meta.get("it_load_mw", 10.0))
+            df = compute_energy_metrics(df, it_load_mw=it_load, electricity_rate_kwh=rate)
+            kpis = generate_kpi_summary(df)
+            
+            # Find representative/peak metrics for this facility
+            peak_temp = float(df["apparent_temperature_celsius"].max())
+            avg_rh = float(df["relative_humidity_percent"].mean())
+            avg_pm25 = float(df["air_quality_pm2p5_idx"].mean())
+            avg_pue = round(float(df["projected_pue"].mean()), 2)
+            base_pue = float(meta.get("baseline_pue", 1.55))
+            daily_savings = float(kpis["total_savings_usd"])
+            co2_tons = float(kpis["total_co2_tons"])
+            
+            # Dominant cooling mode
+            mode_counts = df["recommended_mode"].value_counts()
+            dominant_mode = mode_counts.index[0] if not mode_counts.empty else "Free-Air Economizer"
+            
+            risk_score = int(min(100, max(10, (peak_temp / 45.0) * 100)))
+            risk_level = "Critical" if risk_score >= 80 else ("Warning" if risk_score >= 50 else "Safe")
 
-        Transforms the backend comparison DataFrame into the enriched schema
-        expected by the Streamlit comparison_view component.
-        """
-        raw_df = compare_all_facilities()
-
-        # Build the enriched DataFrame expected by comparison_view.py
-        enriched = pd.DataFrame()
-        enriched["Facility Name"] = raw_df["Facility"]
-        enriched["Location"] = raw_df["Facility"].map({
-            "Ashburn DC-1 (Equinix Hub)": "Ashburn, VA",
-            "Phoenix DC-2 (Desert Hub)": "Phoenix, AZ",
-            "San José DC-3 (Silicon Valley)": "San José, CA",
-        })
-        enriched["IT Load (MW)"] = raw_df["IT Load"].apply(
-            lambda x: float(str(x).replace(" MW", "")) if isinstance(x, str) else float(x)
-        )
-        enriched["Ambient Temp (°C)"] = raw_df["Peak Temp (°C)"]
-        enriched["RH (%)"] = [33.8, 9.2, 37.5]  # representative values from cache
-        enriched["AQI"] = [59, 51, 41]  # representative PM2.5 values from cache
-        enriched["Recommended Mode"] = raw_df["Eco-Cooling Hours"].apply(
-            lambda x: "Mechanical DX Cooling" if "6" in str(x)
-            else ("Free-Air Cooling" if "24" in str(x) else "Evaporative Cooling")
-        )
-        enriched["Baseline PUE"] = 1.55
-        enriched["Current PUE"] = raw_df["Avg PUE"]
-        enriched["PUE Delta"] = enriched["Current PUE"] - enriched["Baseline PUE"]
-        enriched["Current Savings ($/hr)"] = raw_df["Daily Savings ($)"] / 24.0
-        enriched["12h Projected Savings ($)"] = raw_df["Daily Savings ($)"] / 2.0
-        enriched["CO2 Avoided (tons)"] = raw_df["CO2 Avoided (tons)"]
-        # Risk score: higher temp = higher risk, scaled 0-100
-        enriched["Risk Score (1-100)"] = (
-            (enriched["Ambient Temp (°C)"] / enriched["Ambient Temp (°C)"].max()) * 100
-        ).astype(int)
-        enriched["Risk Level"] = enriched["Risk Score (1-100)"].apply(
-            lambda s: "Critical" if s >= 80 else ("Warning" if s >= 50 else "Safe")
-        )
-
-        return enriched
+            rows.append({
+                "Facility Name": meta["name"],
+                "Location": meta.get("location", meta["name"]),
+                "IT Load (MW)": it_load,
+                "Ambient Temp (°C)": round(peak_temp, 1),
+                "RH (%)": round(avg_rh, 1),
+                "AQI": int(avg_pm25),
+                "Recommended Mode": dominant_mode,
+                "Baseline PUE": base_pue,
+                "Current PUE": avg_pue,
+                "PUE Delta": round(avg_pue - base_pue, 2),
+                "Current Savings ($/hr)": round(daily_savings / 24.0, 2),
+                "12h Projected Savings ($)": round(daily_savings / 2.0, 2),
+                "CO2 Avoided (tons)": round(co2_tons, 2),
+                "Risk Score (1-100)": risk_score,
+                "Risk Level": risk_level,
+            })
+            
+        return pd.DataFrame(rows)
 
     def get_spatial_heat_grid(self, facility_id: str) -> List[Dict[str, Any]]:
         """Generate microclimate spatial points around facility."""

@@ -32,7 +32,7 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
             f"""
             <div class="kpi-card danger">
                 <div class="kpi-title"><span>Highest Thermal Risk</span></div>
-                <div style="font-weight: 700; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{highest_risk_row['Facility Name'].split('(')[0].strip()}</div>
+                <div style="font-weight: 700; font-size: 1.05rem; color: #F8FAFC; margin-bottom: 2px;">{highest_risk_row['Facility Name'].split('(')[0].replace('Ã©', 'e').replace('é', 'e').strip()}</div>
                 <div class="kpi-delta delta-negative">Score: {highest_risk_row['Risk Score (1-100)']}/100 ({highest_risk_row['Ambient Temp (°C)']}°C)</div>
             </div>
             """,
@@ -44,7 +44,7 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
             f"""
             <div class="kpi-card highlight">
                 <div class="kpi-title"><span>Peak IT Demand</span></div>
-                <div style="font-weight: 700; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{highest_load_row['Facility Name'].split('(')[0].strip()}</div>
+                <div style="font-weight: 700; font-size: 1.05rem; color: #F8FAFC; margin-bottom: 2px;">{highest_load_row['Facility Name'].split('(')[0].replace('Ã©', 'e').replace('é', 'e').strip()}</div>
                 <div class="kpi-delta delta-neutral">IT Load: {highest_load_row['IT Load (MW)']} MW</div>
             </div>
             """,
@@ -56,7 +56,7 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
             f"""
             <div class="kpi-card success">
                 <div class="kpi-title"><span>Optimal Efficiency (PUE)</span></div>
-                <div style="font-weight: 700; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{best_pue_row['Facility Name'].split('(')[0].strip()}</div>
+                <div style="font-weight: 700; font-size: 1.05rem; color: #F8FAFC; margin-bottom: 2px;">{best_pue_row['Facility Name'].split('(')[0].replace('Ã©', 'e').replace('é', 'e').strip()}</div>
                 <div class="kpi-delta delta-positive">PUE {best_pue_row['Current PUE']:.2f} ({best_pue_row['PUE Delta']:+.2f})</div>
             </div>
             """,
@@ -68,7 +68,7 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
             f"""
             <div class="kpi-card success">
                 <div class="kpi-title"><span>Top 12h Cost Savings</span></div>
-                <div style="font-weight: 700; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{max_savings_row['Facility Name'].split('(')[0].strip()}</div>
+                <div style="font-weight: 700; font-size: 1.05rem; color: #F8FAFC; margin-bottom: 2px;">{max_savings_row['Facility Name'].split('(')[0].replace('Ã©', 'e').replace('é', 'e').strip()}</div>
                 <div class="kpi-delta delta-positive">{format_currency(max_savings_row['12h Projected Savings ($)'])} / 12h</div>
             </div>
             """,
@@ -76,6 +76,10 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
         )
 
     st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
+
+    # Clean facility names for display
+    display_df = df_comparison.copy()
+    display_df["Clean Name"] = display_df["Facility Name"].apply(lambda x: x.split(" (")[0].replace("Ã©", "e").replace("é", "e").strip())
 
     # 2. Native Streamlit Table with rich column configurations
     display_cols = [
@@ -117,7 +121,7 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
 
     st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
 
-    # 3. Comparative Visual Charts in Dark Mode
+    # 3. Comparative Visual Charts in Dark Mode (Cleaned & De-conflicted)
     col_c1, col_c2 = st.columns(2)
 
     with col_c1:
@@ -126,38 +130,60 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
         fig_pue.add_trace(
             go.Bar(
                 name="Baseline PUE (DX Chillers)",
-                x=df_comparison["Facility Name"].apply(lambda x: x.split(" (")[0]),
-                y=df_comparison["Baseline PUE"],
+                x=display_df["Clean Name"],
+                y=display_df["Baseline PUE"],
                 marker_color="#334155",
             )
         )
         fig_pue.add_trace(
             go.Bar(
                 name="FortyGuard Optimized PUE",
-                x=df_comparison["Facility Name"].apply(lambda x: x.split(" (")[0]),
-                y=df_comparison["Current PUE"],
+                x=display_df["Clean Name"],
+                y=display_df["Current PUE"],
                 marker_color="#38BDF8",
             )
         )
         fig_pue.update_layout(
-            title="<b>PUE Comparison: Baseline vs Optimized</b>",
-            font=dict(family="Inter, sans-serif", size=12, color="#F8FAFC"),
+            title=dict(
+                text="<b>PUE Comparison: Baseline vs Optimized</b>",
+                font=dict(family="Inter, sans-serif", size=13, color="#F8FAFC"),
+                y=0.96,
+                x=0.02,
+            ),
             barmode="group",
-            height=280,
-            margin=dict(l=30, r=20, t=35, b=30),
+            height=300,
+            margin=dict(l=35, r=20, t=50, b=55),
             plot_bgcolor="#111827",
             paper_bgcolor="#111827",
-            legend=dict(orientation="h", y=1.18, x=0.5, xanchor="center", font=dict(size=11, color="#94A3B8")),
-            xaxis=dict(tickfont=dict(size=10, color="#94A3B8"), linecolor="#334155"),
-            yaxis=dict(range=[1.0, 1.6], gridcolor="#1E293B", linecolor="#334155", tickfont=dict(size=10, color="#94A3B8")),
+            legend=dict(
+                orientation="h",
+                y=-0.25,
+                x=0.5,
+                xanchor="center",
+                font=dict(size=10, color="#94A3B8"),
+            ),
+            xaxis=dict(
+                title=None,
+                tickfont=dict(size=10, color="#94A3B8"),
+                linecolor="#334155",
+            ),
+            yaxis=dict(
+                title=dict(text="PUE Ratio", font=dict(size=11, color="#94A3B8")),
+                range=[1.0, 1.65],
+                gridcolor="#1E293B",
+                linecolor="#334155",
+                tickfont=dict(size=10, color="#94A3B8"),
+            ),
         )
         st.plotly_chart(fig_pue, use_container_width=True, config={"displayModeBar": False})
 
     with col_c2:
         # Projected 12-Hour Financial Savings Bar Chart
+        max_savings_val = float(display_df["12h Projected Savings ($)"].max()) * 1.30
+
         fig_sav = px.bar(
-            df_comparison,
-            x=df_comparison["Facility Name"].apply(lambda x: x.split(" (")[0]),
+            display_df,
+            x="Clean Name",
             y="12h Projected Savings ($)",
             text="12h Projected Savings ($)",
             color="Recommended Mode",
@@ -169,18 +195,44 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
                 "Mechanical DX Cooling": "#EF4444",
                 "Mechanical Chiller (DX)": "#EF4444",
             },
-            title="<b>Projected 12-Hour Cost Savings ($ USD)</b>",
         )
-        fig_sav.update_traces(texttemplate="$%{text:,.0f}", textposition="outside", textfont_color="#F8FAFC")
+        fig_sav.update_traces(
+            texttemplate="$%{text:,.0f}",
+            textposition="outside",
+            textfont=dict(size=11, color="#F8FAFC", family="JetBrains Mono, monospace"),
+        )
         fig_sav.update_layout(
-            font=dict(family="Inter, sans-serif", size=12, color="#F8FAFC"),
-            height=280,
-            margin=dict(l=30, r=20, t=35, b=30),
+            title=dict(
+                text="<b>Projected 12-Hour Cost Savings ($ USD)</b>",
+                font=dict(family="Inter, sans-serif", size=13, color="#F8FAFC"),
+                y=0.96,
+                x=0.02,
+            ),
+            height=300,
+            margin=dict(l=45, r=20, t=50, b=55),
             plot_bgcolor="#111827",
             paper_bgcolor="#111827",
-            legend=dict(orientation="h", y=1.18, x=0.5, xanchor="center", font=dict(size=11, color="#94A3B8")),
-            xaxis=dict(tickfont=dict(size=10, color="#94A3B8"), linecolor="#334155"),
-            yaxis=dict(gridcolor="#1E293B", linecolor="#334155", tickfont=dict(size=10, color="#94A3B8")),
+            legend=dict(
+                orientation="h",
+                y=-0.25,
+                x=0.5,
+                xanchor="center",
+                title=None,
+                font=dict(size=10, color="#94A3B8"),
+            ),
+            xaxis=dict(
+                title=None,
+                tickfont=dict(size=10, color="#94A3B8"),
+                linecolor="#334155",
+            ),
+            yaxis=dict(
+                title=dict(text="Savings ($)", font=dict(size=11, color="#94A3B8")),
+                range=[0, max_savings_val],
+                gridcolor="#1E293B",
+                linecolor="#334155",
+                tickfont=dict(size=10, color="#94A3B8"),
+            ),
         )
         st.plotly_chart(fig_sav, use_container_width=True, config={"displayModeBar": False})
+
 

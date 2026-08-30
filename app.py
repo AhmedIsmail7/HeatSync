@@ -99,16 +99,17 @@ def main():
         unsafe_allow_html=True,
     )
 
-    # Main Tabbed Interface
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "Operations & Telemetry",
+    # Main Tabbed Interface with Operations and Telemetry separated
+    tab_ops, tab_tel, tab_geo, tab_bench, tab_arch = st.tabs([
+        "Facility Operations",
+        "Diurnal Telemetry",
         "Geospatial Heatmap",
         "Fleet Benchmarks",
         "System Architecture",
     ])
 
-    # Tab 1: Single Facility Operations
-    with tab1:
+    # Tab 1: Facility Operations (Real-time KPIs, ASHRAE Diagnostics, AI Alerts)
+    with tab_ops:
         # 1. Top KPI Metrics Cards + Workload Dispatch Banner
         render_kpi_cards(
             current_metrics=current_metrics,
@@ -118,23 +119,62 @@ def main():
             dispatch_rec=dispatch_rec,
         )
 
-        st.markdown("<div style='margin-top: 0.5rem;'></div>", unsafe_allow_html=True)
-
-        # 2. 24-Hour Forecast Interactive Timeline Chart
-        render_12h_timeline(df_processed, unit_pref=unit_pref, selected_hour=selected_hour)
-
         st.markdown("<div style='margin-top: 0.85rem;'></div>", unsafe_allow_html=True)
 
-        # 3. Cooling Strategy Deep Dive & ASHRAE Envelope
+        # 2. Cooling Strategy Deep Dive & ASHRAE TC 9.9 Psychrometric Envelope
         render_cooling_mode_view(current_metrics, df_processed)
 
         st.markdown("<div style='margin-top: 0.85rem;'></div>", unsafe_allow_html=True)
 
-        # 4. AI Heat Risk Narrative & Operational Alerts Panel
+        # 3. AI Heat Risk Narrative & Operational Alerts Panel
         render_alert_panel(narrative_text, alerts, meta["name"])
 
-    # Tab 2: Geospatial & Heatmap
-    with tab2:
+    # Tab 2: Diurnal Telemetry (Timeline Chart & Hourly Data Inspection)
+    with tab_tel:
+        st.markdown("### 24-Hour Diurnal Telemetry & Atmospheric Profile")
+        st.caption(f"Continuous microclimate forecast and automated cooling dispatch schedule for **{meta['name']}**.")
+
+        # 1. 24-Hour Forecast Interactive Timeline Chart
+        render_12h_timeline(df_processed, unit_pref=unit_pref, selected_hour=selected_hour)
+
+        st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
+
+        # 2. Hourly Telemetry Inspection Table
+        st.markdown("#### Hourly Telemetry Data Log")
+        
+        telemetry_cols = [
+            "timestamp",
+            "apparent_temperature_celsius",
+            "wet_bulb_temperature_celsius",
+            "relative_humidity_percent",
+            "air_quality_pm2p5_idx",
+            "recommended_mode",
+            "projected_pue",
+            "hourly_cost_saved_usd",
+        ]
+        
+        # Ensure available columns exist in df_processed
+        available_tel_cols = [c for c in telemetry_cols if c in df_processed.columns]
+        df_tel_display = df_processed[available_tel_cols].copy()
+        
+        st.dataframe(
+            df_tel_display,
+            column_config={
+                "timestamp": st.column_config.TextColumn("Timestamp", width="small"),
+                "apparent_temperature_celsius": st.column_config.NumberColumn("Apparent Temp", format="%.1f °C"),
+                "wet_bulb_temperature_celsius": st.column_config.NumberColumn("Wet-Bulb Temp", format="%.1f °C"),
+                "relative_humidity_percent": st.column_config.NumberColumn("Humidity", format="%.0f%%"),
+                "air_quality_pm2p5_idx": st.column_config.NumberColumn("AQI (PM2.5)", format="%d"),
+                "recommended_mode": st.column_config.TextColumn("Dispatched Mode", width="medium"),
+                "projected_pue": st.column_config.NumberColumn("PUE", format="%.2f"),
+                "hourly_cost_saved_usd": st.column_config.NumberColumn("Savings ($/hr)", format="$%.2f"),
+            },
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    # Tab 3: Geospatial & Heatmap
+    with tab_geo:
         st.markdown("### Geospatial Telemetry & Thermal Microclimate Heatmap")
         st.caption("3D geospatial rendering of facility IT capacity density and surrounding urban heat island temperature gradients.")
 
@@ -154,12 +194,12 @@ def main():
             view_mode=selected_mode_key,
         )
 
-    # Tab 3: Multi-Facility Comparison
-    with tab3:
+    # Tab 4: Multi-Facility Comparison Benchmarks
+    with tab_bench:
         render_comparison_view(df_comparison)
 
-    # Tab 4: Pipeline Architecture & API Telemetry
-    with tab4:
+    # Tab 5: Pipeline Architecture & API Telemetry
+    with tab_arch:
         st.markdown("### HeatSync Multi-Layer Architecture & Integration Hub")
         st.caption("End-to-end data pipeline flow and live LangGraph decision payloads.")
 
@@ -168,12 +208,12 @@ def main():
             st.markdown(
                 """
                 <div class="kpi-card highlight">
-                    <div style="font-weight: 700; font-size: 0.92rem; color: #0F172A; margin-bottom: 4px;">1. Ingestion & Cache</div>
-                    <div style="font-size: 0.8rem; color: #475569; line-height: 1.5;">
+                    <div style="font-weight: 700; font-size: 0.92rem; color: #F8FAFC; margin-bottom: 4px;">1. Ingestion & Cache</div>
+                    <div style="font-size: 0.8rem; color: #94A3B8; line-height: 1.5;">
                         • FortyGuard API Client (<code>/v1/env_params</code>)<br>
-                        • JSON Caching: Ashburn, Phoenix, San José<br>
+                        • JSON Caching: Ashburn, Phoenix, San Jose<br>
                         • Schema Standardization (Pandas)<br>
-                        <span style="color: #059669; font-weight: 600;">Status: Connected</span>
+                        <span style="color: #10B981; font-weight: 600;">Status: Connected</span>
                     </div>
                 </div>
                 """,
@@ -184,12 +224,12 @@ def main():
             st.markdown(
                 """
                 <div class="kpi-card highlight">
-                    <div style="font-weight: 700; font-size: 0.92rem; color: #0F172A; margin-bottom: 4px;">2. Decision Engine</div>
-                    <div style="font-size: 0.8rem; color: #475569; line-height: 1.5;">
+                    <div style="font-weight: 700; font-size: 0.92rem; color: #F8FAFC; margin-bottom: 4px;">2. Decision Engine</div>
+                    <div style="font-size: 0.8rem; color: #94A3B8; line-height: 1.5;">
                         • ASHRAE Economizer Classification<br>
                         • PUE & Cost/CO₂ Energy Modeling<br>
                         • LangGraph 6-Node Orchestration<br>
-                        <span style="color: #059669; font-weight: 600;">Status: Operational</span>
+                        <span style="color: #10B981; font-weight: 600;">Status: Operational</span>
                     </div>
                 </div>
                 """,
@@ -200,12 +240,12 @@ def main():
             st.markdown(
                 """
                 <div class="kpi-card highlight">
-                    <div style="font-weight: 700; font-size: 0.92rem; color: #0F172A; margin-bottom: 4px;">3. Frontend & Visuals</div>
-                    <div style="font-size: 0.8rem; color: #475569; line-height: 1.5;">
-                        • Minimal Enterprise Dashboard<br>
+                    <div style="font-weight: 700; font-size: 0.92rem; color: #F8FAFC; margin-bottom: 4px;">3. Frontend & Visuals</div>
+                    <div style="font-size: 0.8rem; color: #94A3B8; line-height: 1.5;">
+                        • Minimal Enterprise Dark Dashboard<br>
                         • Interactive Diurnal Plotly Charts<br>
                         • PyDeck 3D Geospatial Visuals<br>
-                        <span style="color: #0284C7; font-weight: 600;">Status: Active</span>
+                        <span style="color: #38BDF8; font-weight: 600;">Status: Active</span>
                     </div>
                 </div>
                 """,
