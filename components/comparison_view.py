@@ -117,7 +117,7 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
 
     st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
 
-    # 3. Comparative Visual Charts
+    # 3. Comparative Visual Charts in Dark Mode
     col_c1, col_c2 = st.columns(2)
 
     with col_c1:
@@ -128,7 +128,7 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
                 name="Baseline PUE (DX Chillers)",
                 x=df_comparison["Facility Name"].apply(lambda x: x.split(" (")[0]),
                 y=df_comparison["Baseline PUE"],
-                marker_color="#CBD5E1",
+                marker_color="#334155",
             )
         )
         fig_pue.add_trace(
@@ -136,20 +136,20 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
                 name="FortyGuard Optimized PUE",
                 x=df_comparison["Facility Name"].apply(lambda x: x.split(" (")[0]),
                 y=df_comparison["Current PUE"],
-                marker_color="#0284C7",
+                marker_color="#38BDF8",
             )
         )
         fig_pue.update_layout(
             title="<b>PUE Comparison: Baseline vs Optimized</b>",
-            font=dict(family="Inter, sans-serif", size=12, color="#0F172A"),
+            font=dict(family="Inter, sans-serif", size=12, color="#F8FAFC"),
             barmode="group",
             height=280,
             margin=dict(l=30, r=20, t=35, b=30),
-            plot_bgcolor="#FFFFFF",
-            paper_bgcolor="#FFFFFF",
-            legend=dict(orientation="h", y=1.18, x=0.5, xanchor="center", font=dict(size=11, color="#64748B")),
-            xaxis=dict(tickfont=dict(size=10, color="#64748B"), linecolor="#E2E8F0"),
-            yaxis=dict(range=[1.0, 1.6], gridcolor="#F1F5F9", linecolor="#E2E8F0", tickfont=dict(size=10, color="#64748B")),
+            plot_bgcolor="#111827",
+            paper_bgcolor="#111827",
+            legend=dict(orientation="h", y=1.18, x=0.5, xanchor="center", font=dict(size=11, color="#94A3B8")),
+            xaxis=dict(tickfont=dict(size=10, color="#94A3B8"), linecolor="#334155"),
+            yaxis=dict(range=[1.0, 1.6], gridcolor="#1E293B", linecolor="#334155", tickfont=dict(size=10, color="#94A3B8")),
         )
         st.plotly_chart(fig_pue, use_container_width=True, config={"displayModeBar": False})
 
@@ -162,25 +162,25 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
             text="12h Projected Savings ($)",
             color="Recommended Mode",
             color_discrete_map={
-                "Free-Air Cooling": "#059669",
-                "Free-Air Economizer": "#059669",
-                "Direct Evaporative": "#0284C7",
-                "Evaporative Cooling": "#0284C7",
-                "Mechanical DX Cooling": "#DC2626",
-                "Mechanical Chiller (DX)": "#DC2626",
+                "Free-Air Cooling": "#10B981",
+                "Free-Air Economizer": "#10B981",
+                "Direct Evaporative": "#38BDF8",
+                "Evaporative Cooling": "#38BDF8",
+                "Mechanical DX Cooling": "#EF4444",
+                "Mechanical Chiller (DX)": "#EF4444",
             },
             title="<b>Projected 12-Hour Cost Savings ($ USD)</b>",
         )
-        fig_sav.update_traces(texttemplate="$%{text:,.0f}", textposition="outside")
+        fig_sav.update_traces(texttemplate="$%{text:,.0f}", textposition="outside", textfont_color="#F8FAFC")
         fig_sav.update_layout(
-            font=dict(family="Inter, sans-serif", size=12, color="#0F172A"),
+            font=dict(family="Inter, sans-serif", size=12, color="#F8FAFC"),
             height=280,
             margin=dict(l=30, r=20, t=35, b=30),
-            plot_bgcolor="#FFFFFF",
-            paper_bgcolor="#FFFFFF",
-            legend=dict(orientation="h", y=1.18, x=0.5, xanchor="center", font=dict(size=11, color="#64748B")),
-            xaxis=dict(tickfont=dict(size=10, color="#64748B"), linecolor="#E2E8F0"),
-            yaxis=dict(gridcolor="#F1F5F9", linecolor="#E2E8F0", tickfont=dict(size=10, color="#64748B")),
+            plot_bgcolor="#111827",
+            paper_bgcolor="#111827",
+            legend=dict(orientation="h", y=1.18, x=0.5, xanchor="center", font=dict(size=11, color="#94A3B8")),
+            xaxis=dict(tickfont=dict(size=10, color="#94A3B8"), linecolor="#334155"),
+            yaxis=dict(gridcolor="#1E293B", linecolor="#334155", tickfont=dict(size=10, color="#94A3B8")),
         )
         st.plotly_chart(fig_sav, use_container_width=True, config={"displayModeBar": False})
 

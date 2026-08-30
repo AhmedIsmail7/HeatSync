@@ -1,55 +1,56 @@
 /* HeatSync – Data Center Cooling Intelligence Theme
-   Design System: Minimalist, Enterprise-Grade Light Theme
+   Design System: Minimalist, Enterprise-Grade Dark Theme
 */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-    --bg-main: #F8FAFC;
-    --bg-card: #FFFFFF;
-    --bg-subtle: #F1F5F9;
+    --bg-main: #0B0F19;
+    --bg-card: #111827;
+    --bg-card-hover: #162032;
+    --bg-subtle: #1E293B;
     
-    --primary-blue: #0284C7;
-    --primary-blue-hover: #0369A1;
-    --primary-blue-subtle: #E0F2FE;
-    --primary-blue-border: #BAE6FD;
+    --primary-blue: #38BDF8;
+    --primary-blue-hover: #0284C7;
+    --primary-blue-subtle: rgba(56, 189, 248, 0.12);
+    --primary-blue-border: #0369A1;
     
-    --text-primary: #0F172A;
-    --text-secondary: #334155;
-    --text-muted: #64748B;
-    --text-subtle: #94A3B8;
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --text-muted: #94A3B8;
+    --text-subtle: #64748B;
     
-    --border-light: #E2E8F0;
-    --border-subtle: #F1F5F9;
-    --border-strong: #CBD5E1;
+    --border-light: #1E293B;
+    --border-subtle: #162032;
+    --border-strong: #334155;
     
-    --color-success: #059669;
-    --color-success-bg: #ECFDF5;
-    --color-success-border: #A7F3D0;
+    --color-success: #10B981;
+    --color-success-bg: rgba(16, 185, 129, 0.12);
+    --color-success-border: rgba(16, 185, 129, 0.3);
     
-    --color-info: #0284C7;
-    --color-info-bg: #F0F9FF;
-    --color-info-border: #BAE6FD;
+    --color-info: #38BDF8;
+    --color-info-bg: rgba(56, 189, 248, 0.12);
+    --color-info-border: rgba(56, 189, 248, 0.3);
     
-    --color-warning: #D97706;
-    --color-warning-bg: #FFFBEB;
-    --color-warning-border: #FDE68A;
+    --color-warning: #F59E0B;
+    --color-warning-bg: rgba(245, 158, 11, 0.12);
+    --color-warning-border: rgba(245, 158, 11, 0.3);
     
-    --color-danger: #DC2626;
-    --color-danger-bg: #FEF2F2;
-    --color-danger-border: #FECACA;
+    --color-danger: #EF4444;
+    --color-danger-bg: rgba(239, 68, 68, 0.12);
+    --color-danger-border: rgba(239, 68, 68, 0.3);
     
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;
     --radius-full: 9999px;
     
-    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.03);
-    --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
 }
 
-/* Base Typography & Application Background */
+/* Base Typography & Background */
 html, body, [class*="st-"] {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     color: var(--text-primary);
@@ -59,21 +60,21 @@ code, kbd, samp, pre {
     font-family: 'JetBrains Mono', monospace;
 }
 
-/* Remove default Streamlit top padding and tighten container spacing */
+/* Streamlit Container Tweaks */
 .block-container {
     padding-top: 2rem !important;
     padding-bottom: 3rem !important;
     max-width: 1440px !important;
 }
 
-/* Minimal Top Brand Header */
+/* Top Navigation / Brand Header in Dark Mode */
 .fortyguard-header {
-    background: #FFFFFF;
+    background: #111827;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
     padding: 1.15rem 1.5rem;
     margin-bottom: 1.25rem;
-    box-shadow: var(--shadow-xs);
+    box-shadow: var(--shadow-sm);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -84,7 +85,7 @@ code, kbd, samp, pre {
 .brand-badge {
     display: inline-flex;
     align-items: center;
-    background: #0F172A;
+    background: #0284C7;
     color: #FFFFFF;
     padding: 3px 10px;
     border-radius: var(--radius-full);
@@ -102,14 +103,14 @@ code, kbd, samp, pre {
     display: inline-block;
 }
 
-/* Minimal Metric & KPI Cards */
+/* KPI & Metric Cards in Dark Mode */
 .kpi-card {
-    background: #FFFFFF;
+    background: #111827;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
     padding: 1.1rem 1.2rem;
     box-shadow: var(--shadow-xs);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -117,7 +118,7 @@ code, kbd, samp, pre {
 }
 
 .kpi-card:hover {
-    border-color: var(--primary-blue-border);
+    border-color: var(--border-strong);
     box-shadow: var(--shadow-sm);
 }
 
@@ -162,7 +163,7 @@ code, kbd, samp, pre {
     font-size: 0.95rem;
     font-weight: 500;
     color: var(--text-muted);
-    margin-left: 3px;
+    margin-left: 4px;
 }
 
 .kpi-delta {
@@ -200,7 +201,7 @@ code, kbd, samp, pre {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 0.65rem;
-    background: #FFFFFF;
+    background: #111827;
     border: 1px solid var(--border-light);
     padding: 0.75rem;
     border-radius: var(--radius-md);
@@ -209,7 +210,7 @@ code, kbd, samp, pre {
 }
 
 .env-item {
-    background: var(--bg-main);
+    background: #0B0F19;
     padding: 0.55rem 0.75rem;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border-light);
@@ -236,7 +237,7 @@ code, kbd, samp, pre {
 
 /* Callout & Alert Components */
 .callout-card {
-    background: var(--bg-card);
+    background: #111827;
     border: 1px solid var(--border-light);
     border-left: 4px solid var(--primary-blue);
     border-radius: var(--radius-md);
@@ -251,7 +252,7 @@ code, kbd, samp, pre {
     margin-bottom: 0.5rem;
     border: 1px solid var(--border-light);
     border-left: 3px solid;
-    background: #FFFFFF;
+    background: #111827;
 }
 
 .alert-info {
@@ -271,7 +272,7 @@ code, kbd, samp, pre {
 
 /* Sidebar Custom Styling */
 [data-testid="stSidebar"] {
-    background-color: #FFFFFF !important;
+    background-color: #0F172A !important;
     border-right: 1px solid var(--border-light) !important;
 }
 
@@ -321,11 +322,12 @@ code, kbd, samp, pre {
     border-bottom: 2px solid var(--primary-blue) !important;
 }
 
-/* Dataframe clean borders */
+/* Dataframe clean styling in dark mode */
 [data-testid="stDataFrame"] {
     border: 1px solid var(--border-light) !important;
     border-radius: var(--radius-md) !important;
     overflow: hidden;
+    background-color: #111827;
 }
 
 /* Buttons minimal styling */
@@ -333,8 +335,8 @@ code, kbd, samp, pre {
     border-radius: var(--radius-sm);
     font-weight: 600;
     font-size: 0.85rem;
-    border: 1px solid var(--border-light);
-    background-color: #FFFFFF;
+    border: 1px solid var(--border-strong);
+    background-color: #1E293B;
     color: var(--text-primary);
     transition: all 0.15s ease;
 }
@@ -342,9 +344,28 @@ code, kbd, samp, pre {
 .stButton > button:hover {
     border-color: var(--primary-blue);
     color: var(--primary-blue);
+    background-color: #162032;
 }
 
 .stButton > button:focus {
     box-shadow: 0 0 0 2px var(--primary-blue-subtle);
 }
+
+/* Expanders dark styling */
+[data-testid="stExpander"] {
+    background-color: #111827 !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: var(--radius-md) !important;
+}
+
+/* Map legend badge overlay */
+.map-legend-box {
+    background: rgba(17, 24, 39, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(51, 65, 85, 0.8);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-top: 0.75rem;
+}
+
 

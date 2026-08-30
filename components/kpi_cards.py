@@ -42,16 +42,16 @@ def render_kpi_cards(
     if dispatch_rec:
         st.markdown(
             f"""
-            <div style="background: #F0F9FF; border: 1px solid #BAE6FD; border-left: 4px solid #0284C7; border-radius: 8px; padding: 0.85rem 1.15rem; margin-bottom: 1rem;">
+            <div style="background: rgba(30, 58, 138, 0.25); border: 1px solid rgba(56, 189, 248, 0.35); border-left: 4px solid #38BDF8; border-radius: 8px; padding: 0.85rem 1.15rem; margin-bottom: 1rem;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px;">
-                    <span style="font-size: 0.8rem; font-weight: 700; color: #0369A1; text-transform: uppercase; letter-spacing: 0.04em;">
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #38BDF8; text-transform: uppercase; letter-spacing: 0.04em;">
                         Workload Dispatch Optimization
                     </span>
                     <span style="background: #0284C7; color: white; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 700;">
                         Target: {dispatch_rec['target_facility']}
                     </span>
                 </div>
-                <div style="font-size: 0.82rem; color: #334155; line-height: 1.4;">
+                <div style="font-size: 0.82rem; color: #E2E8F0; line-height: 1.4;">
                     {dispatch_rec['recommendation']}
                 </div>
             </div>
@@ -70,7 +70,7 @@ def render_kpi_cards(
                 <div>
                     <div class="kpi-title">
                         <span>Apparent Temperature</span>
-                        <span style="font-size: 0.68rem; color: #0284C7; font-weight: 700;">FORTYGUARD</span>
+                        <span style="font-size: 0.68rem; color: #38BDF8; font-weight: 700;">FORTYGUARD</span>
                     </div>
                     <div class="kpi-value">
                         {display_temp:.1f}<span class="kpi-unit">{temp_unit}</span>
@@ -78,7 +78,7 @@ def render_kpi_cards(
                 </div>
                 <div class="kpi-delta delta-neutral">
                     <span>Wet-Bulb: {display_wb:.1f}{temp_unit}</span>
-                    <span style="margin: 0 2px; color: #94A3B8;">•</span>
+                    <span style="margin: 0 2px; color: #64748B;">•</span>
                     <span>ΔT: {abs(round(app_temp_c - wet_bulb_c, 1))}°C</span>
                 </div>
             </div>
@@ -96,13 +96,13 @@ def render_kpi_cards(
                 <div>
                     <div class="kpi-title">
                         <span>Cooling Dispatch</span>
-                        <span style="font-size: 0.68rem; color: #64748B; font-weight: 700;">DECISION ENGINE</span>
+                        <span style="font-size: 0.68rem; color: #94A3B8; font-weight: 700;">DECISION ENGINE</span>
                     </div>
                     <div style="margin-top: 6px; margin-bottom: 6px;">
                         {get_mode_badge_html(rec_mode)}
                     </div>
                 </div>
-                <div style="font-size: 0.75rem; color: #64748B; font-weight: 500; margin-top: 4px;">
+                <div style="font-size: 0.75rem; color: #94A3B8; font-weight: 500; margin-top: 4px;">
                     {kpis.get('eco_hours', 18)}/24 hrs eco-cooling active
                 </div>
             </div>
@@ -120,9 +120,9 @@ def render_kpi_cards(
                 <div>
                     <div class="kpi-title">
                         <span>Facility PUE</span>
-                        <span style="font-size: 0.68rem; color: #0284C7; font-weight: 700;">EFFICIENCY</span>
+                        <span style="font-size: 0.68rem; color: #38BDF8; font-weight: 700;">EFFICIENCY</span>
                     </div>
-                    <div class="kpi-value" style="color: {'#059669' if pue_delta_pct < 0 else '#0F172A'};">
+                    <div class="kpi-value" style="color: {'#10B981' if pue_delta_pct < 0 else '#F8FAFC'};">
                         {projected_pue:.2f}<span class="kpi-unit">Base: {baseline_pue:.2f}</span>
                     </div>
                 </div>
@@ -142,9 +142,9 @@ def render_kpi_cards(
                 <div>
                     <div class="kpi-title">
                         <span>Hourly Cost Savings</span>
-                        <span style="font-size: 0.68rem; color: #059669; font-weight: 700;">REAL-TIME</span>
+                        <span style="font-size: 0.68rem; color: #10B981; font-weight: 700;">REAL-TIME</span>
                     </div>
-                    <div class="kpi-value" style="color: #059669;">
+                    <div class="kpi-value" style="color: #10B981;">
                         {format_currency(hourly_savings)}<span class="kpi-unit">/hr</span>
                     </div>
                 </div>

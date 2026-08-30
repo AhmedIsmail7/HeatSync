@@ -70,27 +70,27 @@ def main():
             <div>
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
                     <span class="brand-badge">HeatSync</span>
-                    <span style="font-size: 0.8rem; color: #64748B; font-weight: 500;">FortyGuard Microclimate Analytics</span>
+                    <span style="font-size: 0.8rem; color: #94A3B8; font-weight: 500;">FortyGuard Microclimate Analytics</span>
                 </div>
-                <div style="font-size: 1.35rem; font-weight: 700; color: #0F172A; letter-spacing: -0.02em;">
+                <div style="font-size: 1.35rem; font-weight: 700; color: #F8FAFC; letter-spacing: -0.02em;">
                     {meta['name']}
                 </div>
-                <div style="font-size: 0.8rem; color: #475569; margin-top: 2px;">
+                <div style="font-size: 0.8rem; color: #94A3B8; margin-top: 2px;">
                     <span>{meta.get('location', meta.get('name', 'USA'))}</span>
-                    <span style="margin: 0 6px; color: #CBD5E1;">|</span>
-                    <span>IT Capacity: <strong>{meta.get('it_load_mw', 10.0)} MW</strong></span>
-                    <span style="margin: 0 6px; color: #CBD5E1;">|</span>
-                    <span>Tariff: <strong>${meta.get('utility_rate_kwh', meta.get('electricity_rate_kwh', 0.085)):.3f}/kWh</strong></span>
+                    <span style="margin: 0 6px; color: #334155;">|</span>
+                    <span>IT Capacity: <strong style="color: #F8FAFC;">{meta.get('it_load_mw', 10.0)} MW</strong></span>
+                    <span style="margin: 0 6px; color: #334155;">|</span>
+                    <span>Tariff: <strong style="color: #F8FAFC;">${meta.get('utility_rate_kwh', meta.get('electricity_rate_kwh', 0.085)):.3f}/kWh</strong></span>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 6px 14px; border-radius: 6px; text-align: right;">
+                <div style="background: #0B0F19; border: 1px solid #1E293B; padding: 6px 14px; border-radius: 6px; text-align: right;">
                     <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
                         <span class="pulse-dot" style="background-color: {status_dot_color};"></span>
-                        <span style="font-weight: 700; font-size: 0.82rem; color: #0F172A;">Hour {current_metrics.get('timestamp', f'{selected_hour}:00')}</span>
+                        <span style="font-weight: 700; font-size: 0.82rem; color: #F8FAFC;">Hour {current_metrics.get('timestamp', f'{selected_hour}:00')}</span>
                     </div>
-                    <div style="font-size: 0.72rem; color: #64748B; margin-top: 1px;">
-                        Active Mode: <span style="font-weight: 600; color: #0F172A;">{current_metrics['recommended_mode']}</span>
+                    <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 1px;">
+                        Active Mode: <span style="font-weight: 600; color: #38BDF8;">{current_metrics['recommended_mode']}</span>
                     </div>
                 </div>
             </div>
