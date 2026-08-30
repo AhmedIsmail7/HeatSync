@@ -213,23 +213,24 @@ def main():
             )
 
         st.markdown("<div style='margin-top: 1.25rem;'></div>", unsafe_allow_html=True)
-        st.markdown("#### Live State Schema (LangGraph Pipeline Output)")
-        sample_json = {
-            "facility_name": meta["name"],
-            "selected_hour": selected_hour,
-            "current_metrics": {
-                "apparent_temp": current_metrics["apparent_temperature_celsius"],
-                "wet_bulb": current_metrics["wet_bulb_temperature_celsius"],
-                "pm25": current_metrics["air_quality_pm2p5_idx"],
-                "mode": current_metrics["recommended_mode"],
-                "projected_pue": current_metrics["projected_pue"],
-                "hourly_cost_saved_usd": current_metrics["hourly_cost_saved_usd"],
-            },
-            "kpis": kpis,
-            "alerts": alerts,
-            "dispatch_recommendation": dispatch_rec,
-        }
-        st.json(sample_json)
+        with st.expander("Inspect Live Pipeline State Schema (JSON Payload)", expanded=False):
+            st.caption("Live structured state output from the LangGraph 6-node decision graph at the active evaluation hour.")
+            sample_json = {
+                "facility_name": meta["name"],
+                "selected_hour": selected_hour,
+                "current_metrics": {
+                    "apparent_temp": current_metrics["apparent_temperature_celsius"],
+                    "wet_bulb": current_metrics["wet_bulb_temperature_celsius"],
+                    "pm25": current_metrics["air_quality_pm2p5_idx"],
+                    "mode": current_metrics["recommended_mode"],
+                    "projected_pue": current_metrics["projected_pue"],
+                    "hourly_cost_saved_usd": current_metrics["hourly_cost_saved_usd"],
+                },
+                "kpis": kpis,
+                "alerts": alerts,
+                "dispatch_recommendation": dispatch_rec,
+            }
+            st.json(sample_json)
 
 
 if __name__ == "__main__":
