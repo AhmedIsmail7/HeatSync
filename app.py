@@ -121,12 +121,7 @@ def main():
 
         st.markdown("<div style='margin-top: 0.85rem;'></div>", unsafe_allow_html=True)
 
-        # 2. Cooling Strategy Deep Dive & ASHRAE TC 9.9 Psychrometric Envelope
-        render_cooling_mode_view(current_metrics, df_processed)
-
-        st.markdown("<div style='margin-top: 0.85rem;'></div>", unsafe_allow_html=True)
-
-        # 3. AI Heat Risk Narrative & Operational Alerts Panel
+        # 2. AI Heat Risk Narrative & Operational Alerts Panel
         render_alert_panel(narrative_text, alerts, meta["name"])
 
     # Tab 2: Diurnal Telemetry (Timeline Chart & Hourly Data Inspection)
