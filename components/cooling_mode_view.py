@@ -34,36 +34,34 @@ def render_cooling_mode_view(current_metrics: Dict[str, Any], df_forecast: pd.Da
     col_left, col_right = st.columns([1.15, 1.0])
 
     with col_left:
-        left_html = textwrap.dedent(f"""
-        <div class="kpi-card" style="padding: 1.25rem;">
-            <div style="font-size: 0.72rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
-                Strategy Diagnostic & ASHRAE Rationale
-            </div>
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 0.88rem; font-weight: 700; color: #F8FAFC;">Dispatch Mode:</span>
-                    {get_mode_badge_html(rec_mode)}
-                </div>
-                <span style="background: #1E293B; color: #94A3B8; border: 1px solid #334155; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
-                    ASHRAE TC 9.9
-                </span>
-            </div>
-
-            <div style="font-size: 0.82rem; color: #CBD5E1; line-height: 1.5; margin-bottom: 0.85rem;">
-                <div style="font-weight: 600; color: #F8FAFC; margin-bottom: 4px;">Engine Reasoning:</div>
-                <div style="color: #94A3B8;">{mode_reason}</div>
-                <div style="margin-top: 6px; padding-left: 0.75rem; border-left: 2px solid #334155; font-size: 0.78rem;">
-                    <div>• Apparent Temp ({app_temp:.1f}°C): {'≤ 19.0°C (Direct Free-Air Economizer Safe)' if app_temp <= 19.0 else ('≤ 27.0°C (Evaporative Economizer Viable)' if app_temp <= 27.0 else '> 27.0°C (Forces Mechanical DX Chiller)')}</div>
-                    <div>• Wet-Bulb Temp ({wet_bulb:.1f}°C): {'≤ 18.5°C (Adiabatic Heat Rejection Enabled)' if wet_bulb <= 18.5 else '> 18.5°C (Chiller Compressors Mandatory)'}</div>
-                    <div>• Particulate PM2.5 ({int(pm25)}): {'Intake threshold safe (< 55 µg/m³)' if pm25 < 55 else 'Filter protection cutoff triggered'}</div>
-                </div>
-            </div>
-
-            <div style="background: #0B0F19; border: 1px solid #1E293B; border-radius: 6px; padding: 0.55rem 0.8rem; font-size: 0.78rem; color: #CBD5E1;">
-                <span style="font-weight: 600; color: #38BDF8;">Transition Forecast:</span> {transition_info}
-            </div>
-        </div>
-        """)
+        left_html = (
+            f'<div class="kpi-card" style="padding: 1.25rem;">'
+            f'<div style="font-size: 0.72rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">'
+            f'Strategy Diagnostic & ASHRAE Rationale'
+            f'</div>'
+            f'<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem;">'
+            f'<div style="display: flex; align-items: center; gap: 8px;">'
+            f'<span style="font-size: 0.88rem; font-weight: 700; color: #F8FAFC;">Dispatch Mode:</span>'
+            f'{get_mode_badge_html(rec_mode)}'
+            f'</div>'
+            f'<span style="background: #1E293B; color: #94A3B8; border: 1px solid #334155; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">'
+            f'ASHRAE TC 9.9'
+            f'</span>'
+            f'</div>'
+            f'<div style="font-size: 0.82rem; color: #CBD5E1; line-height: 1.5; margin-bottom: 0.85rem;">'
+            f'<div style="font-weight: 600; color: #F8FAFC; margin-bottom: 4px;">Engine Reasoning:</div>'
+            f'<div style="color: #94A3B8;">{mode_reason}</div>'
+            f'<div style="margin-top: 6px; padding-left: 0.75rem; border-left: 2px solid #334155; font-size: 0.78rem;">'
+            f'<div>• Apparent Temp ({app_temp:.1f}°C): {"≤ 19.0°C (Direct Free-Air Economizer Safe)" if app_temp <= 19.0 else ("≤ 27.0°C (Evaporative Economizer Viable)" if app_temp <= 27.0 else "> 27.0°C (Forces Mechanical DX Chiller)")}</div>'
+            f'<div>• Wet-Bulb Temp ({wet_bulb:.1f}°C): {"≤ 18.5°C (Adiabatic Heat Rejection Enabled)" if wet_bulb <= 18.5 else "> 18.5°C (Chiller Compressors Mandatory)"}</div>'
+            f'<div>• Particulate PM2.5 ({int(pm25)}): {"Intake threshold safe (< 55 µg/m³)" if pm25 < 55 else "Filter protection cutoff triggered"}</div>'
+            f'</div>'
+            f'</div>'
+            f'<div style="background: #0B0F19; border: 1px solid #1E293B; border-radius: 6px; padding: 0.55rem 0.8rem; font-size: 0.78rem; color: #CBD5E1;">'
+            f'<span style="font-weight: 600; color: #38BDF8;">Transition Forecast:</span> {transition_info}'
+            f'</div>'
+            f'</div>'
+        )
         st.markdown(left_html, unsafe_allow_html=True)
 
     with col_right:
