@@ -1,10 +1,26 @@
+# Environment & Secret Files
+.env
+.env.local
+*.env
+
+# Test Files & Test Results
+tests/
+test_apis.py
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Python Cache & Build Artifacts
 __pycache__/
 *.py[cod]
 *$py.class
-*.env
-.env.local
+*.so
 .venv/
 env/
 venv/
+ENV/
+
+# OS / IDE Artifacts
 .DS_Store
-Thumbs.db
+.vscode/
+.idea/

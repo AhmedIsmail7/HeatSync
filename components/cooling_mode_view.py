@@ -33,8 +33,8 @@ def render_cooling_mode_view(current_metrics: Dict[str, Any], df_forecast: pd.Da
     col_left, col_right = st.columns([1.1, 1.0])
 
     with col_left:
-        st.markdown(
-            f"""
+        import textwrap
+        html_content = textwrap.dedent(f"""
             <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 1.25rem; height: 100%; box-shadow: var(--shadow-sm);">
                 <div style="font-size: 0.8rem; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 0.5rem;">
                     Strategy Diagnostic & ASHRAE Rationale
@@ -50,7 +50,6 @@ def render_cooling_mode_view(current_metrics: Dict[str, Any], df_forecast: pd.Da
                         </span>
                     </div>
                 </div>
-
                 <div style="font-size: 0.86rem; color: #334155; line-height: 1.5; margin-bottom: 1rem;">
                     <strong>Decision Engine Logic:</strong><br>
                     <span style="color: #0F172A; font-weight: 600;">{mode_reason}</span>
@@ -60,14 +59,12 @@ def render_cooling_mode_view(current_metrics: Dict[str, Any], df_forecast: pd.Da
                         <li><strong>Particulate PM2.5 ({int(pm25)}):</strong> {'Safe intake threshold (< 55)' if pm25 < 55 else 'Filter protection cutoff triggered'}</li>
                     </ul>
                 </div>
-
                 <div style="background: #F0F9FF; border: 1px solid #BAE6FD; border-radius: 8px; padding: 0.65rem 0.9rem; font-size: 0.82rem; color: #0369A1;">
                     ⏱️ <strong>Transition Forecast:</strong> {transition_info}
                 </div>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        """)
+        st.markdown(html_content, unsafe_allow_html=True)
 
     with col_right:
         # Psychrometric Envelope Chart
