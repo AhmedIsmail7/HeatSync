@@ -31,7 +31,7 @@ def render_map_view(
             "elevation": float(f["it_load_mw"] * 8000.0),
             "status": str(f["status"]),
             "mode": str(f["current_active_mode"]),
-            "color": [2, 132, 199, 230] if not is_sel else [225, 29, 72, 255],
+            "color": [2, 132, 199, 220] if not is_sel else [15, 23, 42, 255],
         })
 
     # 1. Facility 3D Column Layer
@@ -53,9 +53,9 @@ def render_map_view(
         data=fac_records,
         get_position=["lon", "lat"],
         get_text="name",
-        get_size=13,
+        get_size=12,
         get_color=[15, 23, 42, 255],
-        pixel_offset=[0, -25],
+        pixel_offset=[0, -20],
         billboard=True,
     )
 
@@ -70,7 +70,7 @@ def render_map_view(
         extruded=True,
         get_fill_color="color",
         pickable=True,
-        opacity=0.65,
+        opacity=0.6,
     )
 
     # Set View State
@@ -98,9 +98,15 @@ def render_map_view(
         initial_view_state=view_state,
         map_style="light",
         tooltip={
-            "html": "<b>{name}</b><br><span>Location: {city}</span><br><span>IT Load: {it_load_mw} MW</span><br><span>Status: {status}</span>",
-            "style": {"backgroundColor": "#0F172A", "color": "#FFFFFF", "fontSize": "12px", "borderRadius": "6px", "padding": "6px 10px"},
+            "html": "<div style='font-family: Inter, sans-serif; padding: 2px 4px;'>"
+                    "<div style='font-weight: 700; font-size: 12px; margin-bottom: 2px;'>{name}</div>"
+                    "<div style='color: #94A3B8; font-size: 11px;'>Location: <span style='color: #FFFFFF;'>{city}</span></div>"
+                    "<div style='color: #94A3B8; font-size: 11px;'>IT Load: <span style='color: #FFFFFF;'>{it_load_mw} MW</span></div>"
+                    "<div style='color: #94A3B8; font-size: 11px;'>Status: <span style='color: #FFFFFF;'>{status}</span></div>"
+                    "</div>",
+            "style": {"backgroundColor": "#0F172A", "color": "#FFFFFF", "fontSize": "11px", "borderRadius": "6px", "padding": "8px 10px", "border": "1px solid #334155"},
         },
     )
 
     st.pydeck_chart(deck, use_container_width=True)
+

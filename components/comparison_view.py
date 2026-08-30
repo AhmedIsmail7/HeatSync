@@ -14,9 +14,9 @@ from utils.helpers import format_currency
 
 def render_comparison_view(df_comparison: pd.DataFrame) -> None:
     """Render multi-facility comparison dashboard with highlight cards, table, and charts."""
-    st.markdown("### 📊 Fleet-Wide Data Center Cooling Comparison")
+    st.markdown("### Fleet-Wide Data Center Cooling Benchmarks")
     st.caption(
-        "Side-by-side multi-facility benchmarking to identify high-risk assets, maximum efficiency opportunities, and fleet energy savings."
+        "Side-by-side facility benchmarking identifying thermal risk, efficiency opportunities, and fleet energy savings."
     )
 
     # 1. Executive Fleet Summary Cards
@@ -31,9 +31,9 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
         st.markdown(
             f"""
             <div class="kpi-card danger">
-                <div class="kpi-title"><span>⚠️ Highest Thermal Risk</span></div>
-                <div style="font-weight: 800; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{highest_risk_row['Facility Name'].split('(')[0]}</div>
-                <div style="font-size: 0.8rem; color: #EF4444; font-weight: 700;">Score: {highest_risk_row['Risk Score (1-100)']}/100 ({highest_risk_row['Ambient Temp (°C)']}°C)</div>
+                <div class="kpi-title"><span>Highest Thermal Risk</span></div>
+                <div style="font-weight: 700; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{highest_risk_row['Facility Name'].split('(')[0].strip()}</div>
+                <div class="kpi-delta delta-negative">Score: {highest_risk_row['Risk Score (1-100)']}/100 ({highest_risk_row['Ambient Temp (°C)']}°C)</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -43,9 +43,9 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
         st.markdown(
             f"""
             <div class="kpi-card highlight">
-                <div class="kpi-title"><span>⚡ Peak IT Demand</span></div>
-                <div style="font-weight: 800; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{highest_load_row['Facility Name'].split('(')[0]}</div>
-                <div style="font-size: 0.8rem; color: #0284C7; font-weight: 700;">IT Load: {highest_load_row['IT Load (MW)']} MW</div>
+                <div class="kpi-title"><span>Peak IT Demand</span></div>
+                <div style="font-weight: 700; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{highest_load_row['Facility Name'].split('(')[0].strip()}</div>
+                <div class="kpi-delta delta-neutral">IT Load: {highest_load_row['IT Load (MW)']} MW</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -55,9 +55,9 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
         st.markdown(
             f"""
             <div class="kpi-card success">
-                <div class="kpi-title"><span>🏆 Best Efficiency (PUE)</span></div>
-                <div style="font-weight: 800; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{best_pue_row['Facility Name'].split('(')[0]}</div>
-                <div style="font-size: 0.8rem; color: #059669; font-weight: 700;">PUE {best_pue_row['Current PUE']:.2f} ({best_pue_row['PUE Delta']:+.2f} delta)</div>
+                <div class="kpi-title"><span>Optimal Efficiency (PUE)</span></div>
+                <div style="font-weight: 700; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{best_pue_row['Facility Name'].split('(')[0].strip()}</div>
+                <div class="kpi-delta delta-positive">PUE {best_pue_row['Current PUE']:.2f} ({best_pue_row['PUE Delta']:+.2f})</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -67,15 +67,15 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
         st.markdown(
             f"""
             <div class="kpi-card success">
-                <div class="kpi-title"><span>💰 Top 12h Cost Savings</span></div>
-                <div style="font-weight: 800; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{max_savings_row['Facility Name'].split('(')[0]}</div>
-                <div style="font-size: 0.8rem; color: #059669; font-weight: 700;">{format_currency(max_savings_row['12h Projected Savings ($)'])} / 12h</div>
+                <div class="kpi-title"><span>Top 12h Cost Savings</span></div>
+                <div style="font-weight: 700; font-size: 1.05rem; color: #0F172A; margin-bottom: 2px;">{max_savings_row['Facility Name'].split('(')[0].strip()}</div>
+                <div class="kpi-delta delta-positive">{format_currency(max_savings_row['12h Projected Savings ($)'])} / 12h</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    st.markdown("<div style='margin-top: 1.25rem;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
 
     # 2. Native Streamlit Table with rich column configurations
     display_cols = [
@@ -115,7 +115,7 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
         hide_index=True,
     )
 
-    st.markdown("---")
+    st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
 
     # 3. Comparative Visual Charts
     col_c1, col_c2 = st.columns(2)
@@ -140,14 +140,16 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
             )
         )
         fig_pue.update_layout(
-            title="<b>PUE Comparison: Optimized vs Baseline</b>",
+            title="<b>PUE Comparison: Baseline vs Optimized</b>",
+            font=dict(family="Inter, sans-serif", size=12, color="#0F172A"),
             barmode="group",
-            height=300,
-            margin=dict(l=30, r=20, t=40, b=30),
+            height=280,
+            margin=dict(l=30, r=20, t=35, b=30),
             plot_bgcolor="#FFFFFF",
             paper_bgcolor="#FFFFFF",
-            legend=dict(orientation="h", y=1.15, x=0.5, xanchor="center"),
-            yaxis=dict(range=[1.0, 1.6], gridcolor="#F1F5F9"),
+            legend=dict(orientation="h", y=1.18, x=0.5, xanchor="center", font=dict(size=11, color="#64748B")),
+            xaxis=dict(tickfont=dict(size=10, color="#64748B"), linecolor="#E2E8F0"),
+            yaxis=dict(range=[1.0, 1.6], gridcolor="#F1F5F9", linecolor="#E2E8F0", tickfont=dict(size=10, color="#64748B")),
         )
         st.plotly_chart(fig_pue, use_container_width=True, config={"displayModeBar": False})
 
@@ -160,18 +162,25 @@ def render_comparison_view(df_comparison: pd.DataFrame) -> None:
             text="12h Projected Savings ($)",
             color="Recommended Mode",
             color_discrete_map={
-                "Free-Air Cooling": "#0D9488",
+                "Free-Air Cooling": "#059669",
+                "Free-Air Economizer": "#059669",
+                "Direct Evaporative": "#0284C7",
                 "Evaporative Cooling": "#0284C7",
-                "Mechanical DX Cooling": "#E11D48",
+                "Mechanical DX Cooling": "#DC2626",
+                "Mechanical Chiller (DX)": "#DC2626",
             },
-            title="<b>Projected 12-Hour Cost Savings by Facility ($ USD)</b>",
+            title="<b>Projected 12-Hour Cost Savings ($ USD)</b>",
         )
         fig_sav.update_traces(texttemplate="$%{text:,.0f}", textposition="outside")
         fig_sav.update_layout(
-            height=300,
-            margin=dict(l=30, r=20, t=40, b=30),
+            font=dict(family="Inter, sans-serif", size=12, color="#0F172A"),
+            height=280,
+            margin=dict(l=30, r=20, t=35, b=30),
             plot_bgcolor="#FFFFFF",
             paper_bgcolor="#FFFFFF",
-            yaxis=dict(gridcolor="#F1F5F9"),
+            legend=dict(orientation="h", y=1.18, x=0.5, xanchor="center", font=dict(size=11, color="#64748B")),
+            xaxis=dict(tickfont=dict(size=10, color="#64748B"), linecolor="#E2E8F0"),
+            yaxis=dict(gridcolor="#F1F5F9", linecolor="#E2E8F0", tickfont=dict(size=10, color="#64748B")),
         )
         st.plotly_chart(fig_sav, use_container_width=True, config={"displayModeBar": False})
+

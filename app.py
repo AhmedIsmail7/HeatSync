@@ -1,5 +1,5 @@
 """FortyGuard – Data Center Cooling Intelligence Dashboard
-Frontend Dashboard & Visual Analytics Layer (Ramy).
+Frontend Dashboard & Visual Analytics Layer.
 
 Integrates the official HeatSync backend engines:
 - FortyGuard API Ingestion & Cache Layer (David)
@@ -12,8 +12,7 @@ import streamlit as st
 
 # Configure Streamlit Page
 st.set_page_config(
-    page_title="HeatSync – FortyGuard Cooling Intelligence",
-    page_icon="❄️",
+    page_title="HeatSync | Data Center Cooling Intelligence",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -62,29 +61,37 @@ def main():
     df_comparison = data_service.get_multi_facility_comparison(temp_offset=temp_offset)
     heat_grid = data_service.get_spatial_heat_grid(selected_facility_id)
 
-    # Top Brand Header Banner
+    # Top Brand Header
+    status_dot_color = '#059669' if current_metrics['recommended_mode'] != 'Mechanical Chiller (DX)' else '#DC2626'
+    
     st.markdown(
         f"""
         <div class="fortyguard-header">
             <div>
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                    <span class="brand-badge">HeatSync Intelligence</span>
-                    <span style="font-size: 0.82rem; color: #64748B; font-weight: 600;">Powered by FortyGuard Microclimate API</span>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
+                    <span class="brand-badge">HeatSync</span>
+                    <span style="font-size: 0.8rem; color: #64748B; font-weight: 500;">FortyGuard Microclimate Analytics</span>
                 </div>
-                <div style="font-size: 1.45rem; font-weight: 800; color: #0F172A;">
+                <div style="font-size: 1.35rem; font-weight: 700; color: #0F172A; letter-spacing: -0.02em;">
                     {meta['name']}
                 </div>
-                <div style="font-size: 0.85rem; color: #475569; margin-top: 2px;">
-                    📍 {meta['location']} &nbsp;•&nbsp; ⚡ IT Load: <strong>{meta['it_load_mw']} MW</strong> &nbsp;•&nbsp; 🌐 Utility Tariff: <strong>${meta['utility_rate_kwh']:.3f}/kWh</strong>
+                <div style="font-size: 0.8rem; color: #475569; margin-top: 2px;">
+                    <span>{meta.get('location', meta.get('name', 'USA'))}</span>
+                    <span style="margin: 0 6px; color: #CBD5E1;">|</span>
+                    <span>IT Capacity: <strong>{meta.get('it_load_mw', 10.0)} MW</strong></span>
+                    <span style="margin: 0 6px; color: #CBD5E1;">|</span>
+                    <span>Tariff: <strong>${meta.get('utility_rate_kwh', meta.get('electricity_rate_kwh', 0.085)):.3f}/kWh</strong></span>
                 </div>
             </div>
-            <div style="text-align: right;">
-                <div style="display: inline-flex; align-items: center; gap: 8px; background: #FFFFFF; border: 1px solid #BAE6FD; padding: 6px 14px; border-radius: 9999px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <span class="pulse-dot" style="color: {'#10B981' if current_metrics['recommended_mode'] != 'Mechanical Chiller (DX)' else '#EF4444'};"></span>
-                    <span style="font-weight: 700; font-size: 0.82rem; color: #0F172A;">Operating Hour: {current_metrics.get('timestamp', f'{selected_hour}:00')}</span>
-                </div>
-                <div style="font-size: 0.75rem; color: #64748B; margin-top: 5px;">
-                    Mode: <strong>{current_metrics['recommended_mode']}</strong>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 6px 14px; border-radius: 6px; text-align: right;">
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+                        <span class="pulse-dot" style="background-color: {status_dot_color};"></span>
+                        <span style="font-weight: 700; font-size: 0.82rem; color: #0F172A;">Hour {current_metrics.get('timestamp', f'{selected_hour}:00')}</span>
+                    </div>
+                    <div style="font-size: 0.72rem; color: #64748B; margin-top: 1px;">
+                        Active Mode: <span style="font-weight: 600; color: #0F172A;">{current_metrics['recommended_mode']}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -94,10 +101,10 @@ def main():
 
     # Main Tabbed Interface
     tab1, tab2, tab3, tab4 = st.tabs([
-        "📊 Facility Telemetry & Controls",
-        "🗺️ Geospatial & Thermal Heatmap",
-        "📈 Multi-Facility Fleet Benchmark",
-        "⚙️ LangGraph Decision Telemetry",
+        "Operations & Telemetry",
+        "Geospatial Heatmap",
+        "Fleet Benchmarks",
+        "System Architecture",
     ])
 
     # Tab 1: Single Facility Operations
@@ -116,26 +123,27 @@ def main():
         # 2. 24-Hour Forecast Interactive Timeline Chart
         render_12h_timeline(df_processed, unit_pref=unit_pref, selected_hour=selected_hour)
 
-        st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top: 0.85rem;'></div>", unsafe_allow_html=True)
 
         # 3. Cooling Strategy Deep Dive & ASHRAE Envelope
         render_cooling_mode_view(current_metrics, df_processed)
 
-        st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top: 0.85rem;'></div>", unsafe_allow_html=True)
 
         # 4. AI Heat Risk Narrative & Operational Alerts Panel
         render_alert_panel(narrative_text, alerts, meta["name"])
 
     # Tab 2: Geospatial & Heatmap
     with tab2:
-        st.markdown("### 🗺️ Data Center Locations & Microclimate Thermal Heatmap")
-        st.caption("3D geospatial rendering of facility IT load density and surrounding urban heat island (UHI) temperature gradients.")
+        st.markdown("### Geospatial Telemetry & Thermal Microclimate Heatmap")
+        st.caption("3D geospatial rendering of facility IT capacity density and surrounding urban heat island temperature gradients.")
 
         map_mode = st.radio(
-            "Map Perspective",
-            options=["Continental Overview (All Facilities)", "Focused Facility Microclimate (Heat Island Layer)"],
+            "Perspective View",
+            options=["Continental Overview (Fleet)", "Focused Facility Microclimate (Heat Island Layer)"],
             horizontal=True,
             index=0,
+            label_visibility="collapsed",
         )
         selected_mode_key = "focused_microclimate" if "Focused" in map_mode else "3d_facility_overview"
 
@@ -152,20 +160,20 @@ def main():
 
     # Tab 4: Pipeline Architecture & API Telemetry
     with tab4:
-        st.markdown("### 🛠️ HeatSync Multi-Layer Architecture & Integration Hub")
-        st.caption("Status and live payload schemas produced across our team roles.")
+        st.markdown("### HeatSync Multi-Layer Architecture & Integration Hub")
+        st.caption("End-to-end data pipeline flow and live LangGraph decision payloads.")
 
         c1, c2, c3 = st.columns(3)
         with c1:
             st.markdown(
                 """
                 <div class="kpi-card highlight">
-                    <div style="font-weight: 800; font-size: 1rem; color: #0F172A; margin-bottom: 4px;">1. Ingestion & Cache (David)</div>
-                    <div style="font-size: 0.8rem; color: #475569; line-height: 1.4;">
+                    <div style="font-weight: 700; font-size: 0.92rem; color: #0F172A; margin-bottom: 4px;">1. Ingestion & Cache</div>
+                    <div style="font-size: 0.8rem; color: #475569; line-height: 1.5;">
                         • FortyGuard API Client (<code>/v1/env_params</code>)<br>
                         • JSON Caching: Ashburn, Phoenix, San José<br>
                         • Schema Standardization (Pandas)<br>
-                        <span style="color: #10B981; font-weight: 700;">● Status: Connected</span>
+                        <span style="color: #059669; font-weight: 600;">Status: Connected</span>
                     </div>
                 </div>
                 """,
@@ -176,12 +184,12 @@ def main():
             st.markdown(
                 """
                 <div class="kpi-card highlight">
-                    <div style="font-weight: 800; font-size: 1rem; color: #0F172A; margin-bottom: 4px;">2. Decision Engine (Ahmed)</div>
-                    <div style="font-size: 0.8rem; color: #475569; line-height: 1.4;">
+                    <div style="font-weight: 700; font-size: 0.92rem; color: #0F172A; margin-bottom: 4px;">2. Decision Engine</div>
+                    <div style="font-size: 0.8rem; color: #475569; line-height: 1.5;">
                         • ASHRAE Economizer Classification<br>
                         • PUE & Cost/CO₂ Energy Modeling<br>
                         • LangGraph 6-Node Orchestration<br>
-                        <span style="color: #10B981; font-weight: 700;">● Status: Operational</span>
+                        <span style="color: #059669; font-weight: 600;">Status: Operational</span>
                     </div>
                 </div>
                 """,
@@ -192,20 +200,20 @@ def main():
             st.markdown(
                 """
                 <div class="kpi-card highlight">
-                    <div style="font-weight: 800; font-size: 1rem; color: #0F172A; margin-bottom: 4px;">3. Frontend & Visuals (Ramy)</div>
-                    <div style="font-size: 0.8rem; color: #475569; line-height: 1.4;">
-                        • Streamlit Light/Sky-Blue Dashboard<br>
-                        • Interactive Diurnal Plotly Horizon<br>
-                        • PyDeck 3D Geospatial & Comparison<br>
-                        <span style="color: #0284C7; font-weight: 700;">● Status: Active</span>
+                    <div style="font-weight: 700; font-size: 0.92rem; color: #0F172A; margin-bottom: 4px;">3. Frontend & Visuals</div>
+                    <div style="font-size: 0.8rem; color: #475569; line-height: 1.5;">
+                        • Minimal Enterprise Dashboard<br>
+                        • Interactive Diurnal Plotly Charts<br>
+                        • PyDeck 3D Geospatial Visuals<br>
+                        <span style="color: #0284C7; font-weight: 600;">Status: Active</span>
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-        st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
-        st.markdown("#### Live Output State Schema (LangGraph Pipeline)")
+        st.markdown("<div style='margin-top: 1.25rem;'></div>", unsafe_allow_html=True)
+        st.markdown("#### Live State Schema (LangGraph Pipeline Output)")
         sample_json = {
             "facility_name": meta["name"],
             "selected_hour": selected_hour,

@@ -39,6 +39,7 @@ FACILITY_REGISTRY: Dict[str, Dict[str, Any]] = {
         "lon": -77.4875,
         "it_load_mw": 10.0,
         "utility_rate_kwh": 0.085,
+        "electricity_rate_kwh": 0.085,
         "baseline_pue": 1.55,
     },
     "PHOENIX": {
@@ -49,6 +50,7 @@ FACILITY_REGISTRY: Dict[str, Dict[str, Any]] = {
         "lon": -112.0740,
         "it_load_mw": 15.0,
         "utility_rate_kwh": 0.095,
+        "electricity_rate_kwh": 0.095,
         "baseline_pue": 1.55,
     },
     "SANJOSE": {
@@ -59,6 +61,7 @@ FACILITY_REGISTRY: Dict[str, Dict[str, Any]] = {
         "lon": -121.8863,
         "it_load_mw": 8.0,
         "utility_rate_kwh": 0.145,
+        "electricity_rate_kwh": 0.145,
         "baseline_pue": 1.55,
     },
 }
@@ -294,7 +297,23 @@ def load_facility_json(facility_name: str = "ashburn") -> tuple:
     with open(filepath, "r") as f:
         payload = json.load(f)
 
-    meta = payload["location"]
+    meta = dict(payload.get("location", {}))
+    
+    # Merge with canonical FACILITY_REGISTRY if available
+    fid_upper = facility_name.upper().replace("-VA", "").replace("-AZ", "").replace("-CA", "")
+    if fid_upper in FACILITY_REGISTRY:
+        meta = {**FACILITY_REGISTRY[fid_upper], **meta}
+
+    # Guarantee all standard alias keys exist
+    if "utility_rate_kwh" not in meta and "electricity_rate_kwh" in meta:
+        meta["utility_rate_kwh"] = meta["electricity_rate_kwh"]
+    if "electricity_rate_kwh" not in meta and "utility_rate_kwh" in meta:
+        meta["electricity_rate_kwh"] = meta["utility_rate_kwh"]
+    if "location" not in meta:
+        meta["location"] = meta.get("name", f"{facility_name.title()}, USA")
+    if "baseline_pue" not in meta:
+        meta["baseline_pue"] = 1.55
+
     df = pd.DataFrame(payload["hourly_records"])
 
     # Extract integer hour from "HH:MM" → int

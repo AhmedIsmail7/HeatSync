@@ -88,10 +88,12 @@ class DataService:
         df = apply_cooling_rules(df)
         
         # Compute efficiency & financial metrics
+        rate = float(meta.get("utility_rate_kwh", meta.get("electricity_rate_kwh", 0.085)))
+        it_load = float(meta.get("it_load_mw", 10.0))
         df = compute_energy_metrics(
             df,
-            it_load_mw=meta["it_load_mw"],
-            electricity_rate_kwh=meta["utility_rate_kwh"]
+            it_load_mw=it_load,
+            electricity_rate_kwh=rate
         )
         kpis = generate_kpi_summary(df)
 

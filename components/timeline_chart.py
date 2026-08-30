@@ -37,11 +37,11 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
             y=plot_df["relative_humidity_percent"],
             name="Relative Humidity (%)",
             mode="lines",
-            line=dict(width=1.5, color="rgba(14, 165, 233, 0.35)", dash="dot"),
+            line=dict(width=1.5, color="rgba(2, 132, 199, 0.3)", dash="dot"),
             fill="tozeroy",
-            fillcolor="rgba(224, 242, 254, 0.35)",
+            fillcolor="rgba(224, 242, 254, 0.25)",
             yaxis="y2",
-            hovertemplate="<b>Relative Humidity</b>: %{y:.0f}%<extra></extra>",
+            hovertemplate="Relative Humidity: %{y:.0f}%<extra></extra>",
         )
     )
 
@@ -52,14 +52,14 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
             y=plot_df["plot_app_temp"],
             name=f"Apparent Temp ({temp_unit})",
             mode="lines+markers",
-            line=dict(color="#0284C7", width=3.5),
-            marker=dict(size=8, color="#0284C7", symbol="circle", line=dict(width=2, color="#FFFFFF")),
+            line=dict(color="#0284C7", width=2.5),
+            marker=dict(size=6, color="#0284C7", symbol="circle", line=dict(width=1.5, color="#FFFFFF")),
             hovertemplate=(
                 f"<b>Time</b>: %{{x}}<br>"
                 f"<b>Apparent Temp</b>: %{{y:.1f}}{temp_unit}<br>"
-                f"<b>Mode</b>: %{{customdata[0]}}<br>"
+                f"<b>Dispatch Mode</b>: %{{customdata[0]}}<br>"
                 f"<b>PUE</b>: %{{customdata[1]:.2f}}<br>"
-                f"<b>Savings</b>: $%{{customdata[2]:,.2f}}/hr"
+                f"<b>Hourly Savings</b>: $%{{customdata[2]:,.2f}}"
                 "<extra></extra>"
             ),
             customdata=plot_df[["recommended_mode", "projected_pue", "hourly_cost_saved_usd"]].values,
@@ -73,8 +73,8 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
             y=plot_df["plot_wet_bulb"],
             name=f"Wet-Bulb Temp ({temp_unit})",
             mode="lines",
-            line=dict(color="#0D9488", width=2, dash="dash"),
-            hovertemplate=f"<b>Wet-Bulb Temp</b>: %{{y:.1f}}{temp_unit}<extra></extra>",
+            line=dict(color="#059669", width=1.8, dash="dash"),
+            hovertemplate=f"Wet-Bulb Temp: %{{y:.1f}}{temp_unit}<extra></extra>",
         )
     )
 
@@ -85,21 +85,22 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
         curr_val = selected_rows.iloc[0]["plot_app_temp"]
         fig.add_vline(
             x=curr_time_label,
-            line_width=2.5,
+            line_width=2,
             line_dash="solid",
-            line_color="#2563EB",
+            line_color="#0F172A",
         )
         fig.add_annotation(
             x=curr_time_label,
             y=curr_val,
-            text=f"📍 Current ({curr_time_label})",
+            text=f"Evaluation Hour ({curr_time_label})",
             showarrow=True,
             arrowhead=2,
             ax=0,
-            ay=-40,
-            bgcolor="#1E40AF",
-            font=dict(size=10, color="#FFFFFF", family="Plus Jakarta Sans"),
-            opacity=0.95,
+            ay=-35,
+            bgcolor="#0F172A",
+            font=dict(size=10, color="#FFFFFF", family="Inter, sans-serif"),
+            opacity=0.9,
+            borderpad=4,
         )
 
     # 5. Highlight Mode Switching Points
@@ -107,9 +108,9 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
     for _, s_row in switch_rows.iterrows():
         fig.add_vline(
             x=s_row["timestamp"],
-            line_width=1.5,
+            line_width=1.2,
             line_dash="dash",
-            line_color="#E11D48" if "Mechanical" in s_row["recommended_mode"] else "#0D9488",
+            line_color="#DC2626" if "Mechanical" in s_row["recommended_mode"] else "#059669",
         )
 
     # Layout styling
@@ -118,13 +119,13 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
 
     fig.update_layout(
         title=dict(
-            text="<b>24-Hour Diurnal Forecast: Atmospheric Telemetry & Cooling Dispatch</b>",
-            font=dict(size=14, color="#0F172A", family="Plus Jakarta Sans"),
+            text="<b>24-Hour Diurnal Forecast & Cooling Dispatch</b>",
+            font=dict(size=13, color="#0F172A", family="Inter, sans-serif"),
             x=0.01,
             y=0.96,
         ),
         margin=dict(l=45, r=45, t=45, b=35),
-        height=380,
+        height=360,
         plot_bgcolor="#FFFFFF",
         paper_bgcolor="#FFFFFF",
         legend=dict(
@@ -133,7 +134,7 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
             y=1.02,
             xanchor="right",
             x=1,
-            font=dict(size=11, color="#475569"),
+            font=dict(size=11, color="#64748B"),
         ),
         xaxis=dict(
             showgrid=True,
@@ -142,22 +143,23 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
             tickfont=dict(size=10, color="#64748B"),
         ),
         yaxis=dict(
-            title=dict(text=f"Temperature ({temp_unit})", font=dict(size=12, color="#0F172A")),
+            title=dict(text=f"Temperature ({temp_unit})", font=dict(size=11, color="#0F172A")),
             range=[min_temp, max_temp],
             showgrid=True,
             gridcolor="#F1F5F9",
             linecolor="#E2E8F0",
-            tickfont=dict(size=11, color="#64748B"),
+            tickfont=dict(size=10, color="#64748B"),
         ),
         yaxis2=dict(
-            title=dict(text="Relative Humidity (%)", font=dict(size=12, color="#0EA5E9")),
+            title=dict(text="Relative Humidity (%)", font=dict(size=11, color="#0284C7")),
             range=[0, 100],
             overlaying="y",
             side="right",
             showgrid=False,
-            tickfont=dict(size=11, color="#0EA5E9"),
+            tickfont=dict(size=10, color="#0284C7"),
         ),
         hovermode="x unified",
     )
 
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+

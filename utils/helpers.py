@@ -11,23 +11,26 @@ from typing import Any, Dict, Tuple
 
 # Cooling Mode Design Constants
 MODE_COLORS = {
-    "Free-Air Cooling": {"bg": "#CCFBF1", "border": "#99F6E4", "text": "#0F766E", "hex": "#0D9488"},
-    "Evaporative Cooling": {"bg": "#E0F2FE", "border": "#BAE6FD", "text": "#0369A1", "hex": "#0284C7"},
-    "Mechanical DX Cooling": {"bg": "#FFE4E6", "border": "#FECDD3", "text": "#BE123C", "hex": "#E11D48"},
+    "Free-Air Economizer": {"bg": "#ECFDF5", "border": "#A7F3D0", "text": "#065F46", "hex": "#059669"},
+    "Free-Air Cooling": {"bg": "#ECFDF5", "border": "#A7F3D0", "text": "#065F46", "hex": "#059669"},
+    "Direct Evaporative": {"bg": "#F0F9FF", "border": "#BAE6FD", "text": "#0369A1", "hex": "#0284C7"},
+    "Evaporative Cooling": {"bg": "#F0F9FF", "border": "#BAE6FD", "text": "#0369A1", "hex": "#0284C7"},
+    "Mechanical Chiller (DX)": {"bg": "#FEF2F2", "border": "#FECACA", "text": "#991B1B", "hex": "#DC2626"},
+    "Mechanical DX Cooling": {"bg": "#FEF2F2", "border": "#FECACA", "text": "#991B1B", "hex": "#DC2626"},
 }
 
 RISK_LEVEL_COLORS = {
-    "Safe": {"bg": "#ECFDF5", "border": "#A7F3D0", "text": "#065F46", "hex": "#10B981"},
-    "Moderate": {"bg": "#FEF3C7", "border": "#FDE68A", "text": "#92400E", "hex": "#F59E0B"},
-    "Warning": {"bg": "#FFEDD5", "border": "#FED7AA", "text": "#9A3412", "hex": "#F97316"},
-    "High Risk": {"bg": "#FEE2E2", "border": "#FECACA", "text": "#991B1B", "hex": "#EF4444"},
-    "Critical": {"bg": "#FFE4E6", "border": "#FECDD3", "text": "#881337", "hex": "#BE123C"},
+    "Safe": {"bg": "#ECFDF5", "border": "#A7F3D0", "text": "#065F46", "hex": "#059669"},
+    "Moderate": {"bg": "#FFFBEB", "border": "#FDE68A", "text": "#92400E", "hex": "#D97706"},
+    "Warning": {"bg": "#FFFBEB", "border": "#FDE68A", "text": "#92400E", "hex": "#D97706"},
+    "High Risk": {"bg": "#FEF2F2", "border": "#FECACA", "text": "#991B1B", "hex": "#DC2626"},
+    "Critical": {"bg": "#FEF2F2", "border": "#FECACA", "text": "#991B1B", "hex": "#DC2626"},
 }
 
 SEVERITY_MAP = {
-    "info": {"badge": "INFO", "class": "alert-info", "color": "#0284C7", "icon": "ℹ️"},
-    "warning": {"badge": "WARNING", "class": "alert-warning", "color": "#F59E0B", "icon": "⚠️"},
-    "critical": {"badge": "CRITICAL", "class": "alert-critical", "color": "#EF4444", "icon": "🚨"},
+    "info": {"badge": "INFO", "class": "alert-info", "color": "#0284C7"},
+    "warning": {"badge": "WARNING", "class": "alert-warning", "color": "#D97706"},
+    "critical": {"badge": "CRITICAL", "class": "alert-critical", "color": "#DC2626"},
 }
 
 
@@ -78,26 +81,25 @@ def format_co2(kg_co2: float) -> str:
 
 
 def get_mode_badge_html(mode: str) -> str:
-    """Generate HTML pill badge for cooling mode."""
-    cfg = MODE_COLORS.get(mode, MODE_COLORS["Mechanical DX Cooling"])
-    icon = "💨" if "Free-Air" in mode else ("💧" if "Evaporative" in mode else "⚡")
+    """Generate HTML pill badge for cooling mode without emojis."""
+    cfg = MODE_COLORS.get(mode, MODE_COLORS["Mechanical Chiller (DX)"])
     return (
         f'<span style="background-color: {cfg["bg"]}; color: {cfg["text"]}; '
-        f'border: 1px solid {cfg["border"]}; padding: 4px 12px; border-radius: 9999px; '
-        f'font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">'
-        f'{icon} {mode}</span>'
+        f'border: 1px solid {cfg["border"]}; padding: 3px 10px; border-radius: 9999px; '
+        f'font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">'
+        f'<span style="width: 7px; height: 7px; border-radius: 50%; background-color: {cfg["hex"]};"></span>'
+        f'{mode}</span>'
     )
 
 
 def get_risk_badge_html(risk_level: str) -> str:
-    """Generate HTML badge for risk severity."""
+    """Generate HTML badge for risk severity without emojis."""
     cfg = RISK_LEVEL_COLORS.get(risk_level, RISK_LEVEL_COLORS["High Risk"])
-    dot_color = cfg["hex"]
     return (
         f'<span style="background-color: {cfg["bg"]}; color: {cfg["text"]}; '
-        f'border: 1px solid {cfg["border"]}; padding: 4px 10px; border-radius: 9999px; '
-        f'font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">'
-        f'<span style="width: 8px; height: 8px; border-radius: 50%; background-color: {dot_color};"></span>'
+        f'border: 1px solid {cfg["border"]}; padding: 3px 9px; border-radius: 9999px; '
+        f'font-size: 0.76rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">'
+        f'<span style="width: 6px; height: 6px; border-radius: 50%; background-color: {cfg["hex"]};"></span>'
         f'{risk_level}</span>'
     )
 
@@ -116,20 +118,21 @@ def classify_ashrae_compliance(dry_bulb_c: float, rh_pct: float) -> Dict[str, An
         return {
             "status": "ASHRAE A1 Recommended",
             "tier": "Optimal",
-            "badge_color": "#10B981",
+            "badge_color": "#059669",
             "desc": "Environmental conditions fall strictly within ASHRAE A1 optimal operating envelope."
         }
     elif in_allowable:
         return {
             "status": "ASHRAE A2 Allowable",
             "tier": "Sub-Optimal",
-            "badge_color": "#F59E0B",
+            "badge_color": "#D97706",
             "desc": "Operating in allowable envelope. Economizer or adiabatic trim cooling may be required."
         }
     else:
         return {
             "status": "Non-Compliant (Extreme)",
             "tier": "Critical Stress",
-            "badge_color": "#EF4444",
+            "badge_color": "#DC2626",
             "desc": "Outside standard air-cooling envelopes. Full mechanical refrigeration required to prevent server throttling."
         }
+
