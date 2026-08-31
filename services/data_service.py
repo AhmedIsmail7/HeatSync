@@ -7,18 +7,30 @@ FortyGuard Ingestion & Caching Layer (David), and the Streamlit UI (Ramy).
 from typing import Any, Dict, List, Optional
 import pandas as pd
 import numpy as np
+import requests
+import logging
+
+logger = logging.getLogger(__name__)
 
 from data_pipeline import (
     FACILITY_REGISTRY,
     list_available_facilities,
+    fetch_facility_data,
     load_facility_json,
 )
+import streamlit as st
 from cooling_engine import apply_cooling_rules
 from efficiency_model import compute_energy_metrics, generate_kpi_summary
 from alert_engine import scan_forecast_alerts
 from comparison_engine import compare_all_facilities
 from pipeline import get_heat_sync_analytics
 from utils.helpers import calculate_wet_bulb, calculate_dew_point
+
+
+@st.cache_data(ttl=300)
+def _cached_fetch_facility_data(facility_id: str) -> pd.DataFrame:
+    """Wrapper to cache live API fetches for 5 minutes."""
+    return fetch_facility_data(facility_id, use_cache=False)
 
 
 class DataService:
@@ -77,8 +89,17 @@ class DataService:
         else:
             fac_name = "ashburn"
 
-        # Load raw data and apply transformations
-        meta, df = load_facility_json(fac_name)
+        # Load live data and metadata
+        meta = FACILITY_REGISTRY.get(fac_name.upper(), {})
+        if not meta:
+            meta, _ = load_facility_json(fac_name)
+            
+        try:
+            df = _cached_fetch_facility_data(fac_name.upper())
+        except (requests.exceptions.RequestException, RuntimeError) as e:
+            logger.error(f"Failed to fetch live data for {fac_name}: {e}")
+            return {"status": "error", "message": "Connection to FortyGuard API timed out."}
+        
         # Normalize key aliases between JSON schema and FACILITY_REGISTRY schema
         if "utility_rate_kwh" not in meta and "electricity_rate_kwh" in meta:
             meta["utility_rate_kwh"] = meta["electricity_rate_kwh"]
@@ -115,11 +136,24 @@ class DataService:
         # Compute workload dispatch recommendation
         dispatch_rec = None
         if current_row["recommended_mode"] == "Mechanical Chiller (DX)":
-            for alt_fac in list_available_facilities():
-                if alt_fac != fac_name:
-                    _, alt_df = load_facility_json(alt_fac)
+            for alt_fac in ["ASHBURN", "PHOENIX", "SANJOSE"]:
+                if alt_fac.lower() != fac_name.lower():
+                    try:
+                        alt_df = _cached_fetch_facility_data(alt_fac.upper())
+                    except (requests.exceptions.RequestException, RuntimeError) as e:
+                        logger.warning(f"Skipping alt facility {alt_fac} due to API error: {e}")
+                        continue
+                        
+                    if alt_df.empty:
+                        continue
+                        
                     alt_df = apply_cooling_rules(alt_df)
-                    alt_row = alt_df[alt_df["hour"] == selected_hour].iloc[0]
+                    matching_alt_rows = alt_df[alt_df["hour"] == selected_hour]
+                    if matching_alt_rows.empty:
+                        alt_row = alt_df.iloc[0]
+                    else:
+                        alt_row = matching_alt_rows.iloc[0]
+                    
                     if alt_row["recommended_mode"] in ["Free-Air Economizer", "Direct Evaporative"]:
                         dispatch_rec = {
                             "target_facility": alt_fac.upper(),
@@ -154,11 +188,12 @@ class DataService:
 
     def get_multi_facility_comparison(self, temp_offset: float = 0.0) -> pd.DataFrame:
         """Run multi-facility benchmarking table with dynamically computed site metrics."""
-        facilities = list_available_facilities()
+        facilities = ["ASHBURN", "PHOENIX", "SANJOSE"]
         rows = []
         
         for fac_id in facilities:
-            meta, df = load_facility_json(fac_id)
+            meta = FACILITY_REGISTRY.get(fac_id, {})
+            df = _cached_fetch_facility_data(fac_id)
             if temp_offset != 0.0:
                 df["apparent_temperature_celsius"] = df["apparent_temperature_celsius"] + temp_offset
                 df["wet_bulb_temperature_celsius"] = df["wet_bulb_temperature_celsius"] + (temp_offset * 0.7)

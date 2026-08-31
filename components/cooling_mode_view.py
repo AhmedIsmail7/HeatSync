@@ -115,6 +115,7 @@ def render_cooling_mode_view(current_metrics: Dict[str, Any], df_forecast: pd.Da
         )
 
         fig_ashrae.update_layout(
+            template="plotly_dark",
             title=dict(
                 text="<b>Psychrometric Envelope (ASHRAE TC 9.9)</b>",
                 font=dict(size=12, color="#F8FAFC", family="Inter, sans-serif"),
@@ -135,10 +136,10 @@ def render_cooling_mode_view(current_metrics: Dict[str, Any], df_forecast: pd.Da
             ),
             margin=dict(l=35, r=15, t=35, b=30),
             height=250,
-            plot_bgcolor="#111827",
-            paper_bgcolor="#111827",
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
             showlegend=False,
         )
 
-        st.plotly_chart(fig_ashrae, use_container_width=True, config={"displayModeBar": False})
+        st.plotly_chart(fig_ashrae, width="stretch", config={"displayModeBar": False})
 

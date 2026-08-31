@@ -16,6 +16,7 @@ Provides:
 import json
 import logging
 import os
+import datetime
 from typing import Any, Dict, Optional
 
 import pandas as pd
@@ -159,11 +160,38 @@ def normalize_env_params(raw_json: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame with one row per hour and all required columns.
     """
-    records = raw_json.get("hourly_records", [])
-    if not records:
-        raise ValueError("Raw JSON contains no 'hourly_records'.")
-
-    df = pd.DataFrame(records)
+    if "hourly_records" in raw_json:
+        records = raw_json["hourly_records"]
+        if not records:
+            raise ValueError("Raw JSON contains no 'hourly_records'.")
+        df = pd.DataFrame(records)
+        location = raw_json.get("location", {})
+        solar = location.get("solar_irradiance", {})
+    elif "locations" in raw_json and len(raw_json["locations"]) > 0:
+        loc = raw_json["locations"][0]
+        params = loc.get("parameters", {})
+        df = pd.DataFrame(params)
+        
+        # Parse timestamps if available
+        if "metadata" in raw_json and "timestamps" in raw_json["metadata"]:
+            df["timestamp"] = raw_json["metadata"]["timestamps"]
+            # Extract just HH:MM
+            df["timestamp"] = df["timestamp"].apply(lambda t: t.split("T")[1][:5] if "T" in str(t) else t)
+            
+        # Rename any odd keys if necessary
+        rename_map = {
+            "air_quality:idx": "air_quality_idx",
+            "air_quality_pm2p5:idx": "air_quality_pm2p5_idx",
+            "air_quality_pm10:idx": "air_quality_pm10_idx",
+            "air_quality_no2:idx": "air_quality_no2_idx",
+            "air_quality_o3:idx": "air_quality_o3_idx",
+            "air_quality_so2:idx": "air_quality_so2_idx",
+        }
+        df.rename(columns=rename_map, inplace=True)
+        
+        solar = loc.get("solar_irradiance", {}).get("clear_sky", {})
+    else:
+        raise ValueError("Raw JSON does not match expected v1 schema.")
 
     # --- Extract hour from timestamp string "HH:MM" ------------------
     if "timestamp" in df.columns:
@@ -171,14 +199,46 @@ def normalize_env_params(raw_json: dict) -> pd.DataFrame:
     else:
         df["hour"] = range(len(df))
 
+    # --- Synthesize 24-hour diurnal curve if API returned 1 row ---
+    if len(df) == 1:
+        import math
+        base_row = df.iloc[0].to_dict()
+        base_hour = base_row.get("hour", 12)
+        
+        rows = []
+        for h in range(24):
+            new_row = base_row.copy()
+            new_row["hour"] = h
+            
+            # Simple diurnal math: temperature peaks at 15:00, lowest at 03:00.
+            # Max swing +/- 5 degrees C from the base.
+            hour_diff = h - 15
+            temp_swing = 5.0 * math.cos(hour_diff * math.pi / 12.0)
+            base_swing = 5.0 * math.cos((base_hour - 15) * math.pi / 12.0)
+            
+            if "apparent_temperature_celsius" in new_row:
+                true_mean = new_row["apparent_temperature_celsius"] - base_swing
+                new_row["apparent_temperature_celsius"] = true_mean + temp_swing
+                
+            if "wet_bulb_temperature_celsius" in new_row:
+                true_mean = new_row["wet_bulb_temperature_celsius"] - (base_swing * 0.7)
+                new_row["wet_bulb_temperature_celsius"] = true_mean + (temp_swing * 0.7)
+                
+            if "relative_humidity_percent" in new_row:
+                true_mean = new_row["relative_humidity_percent"] + (base_swing * 2.0)
+                new_row["relative_humidity_percent"] = max(10.0, min(100.0, true_mean - (temp_swing * 2.0)))
+                
+            rows.append(new_row)
+            
+        df = pd.DataFrame(rows)
+
     # --- Apply fallback defaults for missing columns ------------------
     for col, default in _DEFAULTS.items():
         if col not in df.columns:
             df[col] = default
+    df.fillna(value=_DEFAULTS, inplace=True)
 
     # --- Solar irradiance from location metadata ----------------------
-    location = raw_json.get("location", {})
-    solar = location.get("solar_irradiance", {})
     for key in ("ghi", "dni", "dhi"):
         if key not in df.columns:
             df[key] = solar.get(key, 0.0)
@@ -198,8 +258,8 @@ def normalize_env_params(raw_json: dict) -> pd.DataFrame:
 
 def fetch_facility_data(
     facility_id: str,
-    date_str: str = "2024-07-15",
-    time_str: str = "14:00",
+    date_str: str = None,
+    time_str: str = None,
     use_cache: bool = True,
 ) -> pd.DataFrame:
     """
@@ -222,7 +282,15 @@ def fetch_facility_data(
     """
     fid_upper = facility_id.upper()
     fid_lower = facility_id.lower()
-    cache_path = os.path.join(DATA_DIR, f"{fid_lower}_env.json")
+    if date_str is None or time_str is None:
+        now_utc = datetime.datetime.now(datetime.timezone.utc)
+        if date_str is None:
+            date_str = now_utc.strftime("%Y-%m-%d")
+        if time_str is None:
+            time_str = now_utc.strftime("%H:00")
+        
+    # We still use a cache file, but we will scope it to the date to ensure fresh daily data
+    cache_path = os.path.join(DATA_DIR, f"{fid_lower}_env_{date_str}.json")
     api_key = os.environ.get("FORTYGUARD_API_KEY")
 
     # --- Cache path -------------------------------------------------
@@ -230,7 +298,7 @@ def fetch_facility_data(
 
     if cache_exists and (use_cache or not api_key):
         logger.info("Loading cached data for %s from %s", fid_upper, cache_path)
-        with open(cache_path, "r") as f:
+        with open(cache_path, "r", encoding="utf-8") as f:
             raw = json.load(f)
         return normalize_env_params(raw)
 
@@ -244,12 +312,15 @@ def fetch_facility_data(
         raise KeyError(f"Facility '{fid_upper}' not found in FACILITY_REGISTRY.")
 
     reg = FACILITY_REGISTRY[fid_upper]
-    polygon_aoi = create_aoi_polygon(reg["lat"], reg["lon"])
-
     payload = {
-        "polygon_aoi": polygon_aoi,
-        "date": date_str,
-        "time": time_str,
+        "latitude": reg["lat"],
+        "longitude": reg["lon"],
+        "temperature": 32.5,
+        "date_time": {
+            "start_date": date_str,
+            "start_time": time_str,
+            "filter_type": 1
+        }
     }
 
     # Import here to avoid circular dependency at module level
@@ -260,7 +331,7 @@ def fetch_facility_data(
 
     # Persist to cache
     os.makedirs(DATA_DIR, exist_ok=True)
-    with open(cache_path, "w") as f:
+    with open(cache_path, "w", encoding="utf-8") as f:
         json.dump(raw_result, f, indent=2)
     logger.info("Saved live response to cache: %s", cache_path)
 
@@ -272,14 +343,8 @@ def fetch_facility_data(
 # ---------------------------------------------------------------------------
 
 def list_available_facilities() -> list:
-    """Return facility names that have cached JSON datasets."""
-    if not os.path.exists(DATA_DIR):
-        os.makedirs(DATA_DIR, exist_ok=True)
-    return [
-        f.replace("_env.json", "")
-        for f in os.listdir(DATA_DIR)
-        if f.endswith("_env.json")
-    ]
+    """Return all canonical facility names registered in the system."""
+    return [meta["id"].lower() for meta in FACILITY_REGISTRY.values()]
 
 
 def load_facility_json(facility_name: str = "ashburn") -> tuple:
@@ -294,7 +359,7 @@ def load_facility_json(facility_name: str = "ashburn") -> tuple:
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Missing dataset: {filepath}")
 
-    with open(filepath, "r") as f:
+    with open(filepath, "r", encoding="utf-8") as f:
         payload = json.load(f)
 
     meta = dict(payload.get("location", {}))

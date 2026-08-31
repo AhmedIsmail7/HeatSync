@@ -9,6 +9,9 @@ Integrates the official HeatSync backend engines:
 
 from pathlib import Path
 import streamlit as st
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configure Streamlit Page
 st.set_page_config(
@@ -48,6 +51,12 @@ def main():
         selected_hour=selected_hour,
         temp_offset=temp_offset,
     )
+
+    if analytics.get("status") == "error":
+        st.error("🚨 Live Telemetry Unreachable: The FortyGuard API is currently timing out. Please check your network connection or try again.")
+        if st.button("🔄 Retry Connection"):
+            st.rerun()
+        st.stop()
 
     current_metrics = analytics["current_metrics"]
     kpis = analytics["kpis"]
@@ -164,7 +173,7 @@ def main():
                 "projected_pue": st.column_config.NumberColumn("PUE", format="%.2f"),
                 "hourly_cost_saved_usd": st.column_config.NumberColumn("Savings ($/hr)", format="$%.2f"),
             },
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 

@@ -34,7 +34,7 @@ class FortyGuardClient:
         self,
         api_key: Optional[str] = None,
         base_url: str = "https://api.fortyguard.com",
-        timeout: int = 60,
+        timeout: int = 15,
     ):
         self.api_key = api_key or os.environ.get("FORTYGUARD_API_KEY")
         self.base_url = base_url.rstrip("/")
@@ -128,9 +128,9 @@ class FortyGuardClient:
     def poll_status(
         self,
         activity_id: str,
-        max_retries: int = 20,
-        initial_wait: float = 2.0,
-        max_wait: float = 20.0,
+        max_retries: int = 5,
+        initial_wait: float = 1.0,
+        max_wait: float = 10.0,
         backoff_factor: float = 1.5,
     ) -> Dict[str, Any]:
         """

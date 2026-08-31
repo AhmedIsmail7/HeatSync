@@ -15,6 +15,9 @@ class HeatSyncState(TypedDict):
     facility_name: str
     selected_hour: int
     facility_meta: Dict[str, Any]
+    use_cache: bool
+    date_str: str
+    time_str: str
     raw_df: Optional[pd.DataFrame]
     processed_df: Optional[pd.DataFrame]
     current_metrics: Dict[str, Any]
@@ -26,19 +29,16 @@ class HeatSyncState(TypedDict):
 
 # --- 2. Node Functions ---
 def node_ingest_data(state: HeatSyncState) -> Dict[str, Any]:
-    try:
-        use_cache = state.get("use_cache", True)
-        if use_cache:
-            meta, df = load_facility_json(state["facility_name"])
-        else:
-            from data_pipeline import fetch_facility_data, FACILITY_REGISTRY
-            date_str = state.get("date_str", "2024-07-15")
-            time_str = state.get("time_str", "14:00")
-            df = fetch_facility_data(state["facility_name"], date_str=date_str, time_str=time_str, use_cache=False)
-            meta = FACILITY_REGISTRY[state["facility_name"].upper()]
-        return {"facility_meta": meta, "raw_df": df}
-    except Exception as e:
-        return {"errors": [f"Ingestion error: {str(e)}"]}
+    use_cache = state.get("use_cache", True)
+    if use_cache:
+        meta, df = load_facility_json(state["facility_name"])
+    else:
+        from data_pipeline import fetch_facility_data, FACILITY_REGISTRY
+        date_str = state.get("date_str", None)
+        time_str = state.get("time_str", None)
+        df = fetch_facility_data(state["facility_name"], date_str=date_str, time_str=time_str, use_cache=False)
+        meta = FACILITY_REGISTRY[state["facility_name"].upper()]
+    return {"facility_meta": meta, "raw_df": df, "processed_df": df}
 
 def node_run_decision_engine(state: HeatSyncState) -> Dict[str, Any]:
     df = state["raw_df"].copy()
@@ -56,7 +56,12 @@ def node_compute_efficiency(state: HeatSyncState) -> Dict[str, Any]:
         electricity_rate_kwh=meta["electricity_rate_kwh"]
     )
     kpis = generate_kpi_summary(df)
-    current_row = df[df["hour"] == selected_hour].iloc[0].to_dict()
+    
+    hour_df = df[df["hour"] == selected_hour]
+    if not hour_df.empty:
+        current_row = hour_df.iloc[0].to_dict()
+    else:
+        current_row = df.iloc[0].to_dict()
     
     return {
         "processed_df": df,
@@ -71,32 +76,36 @@ def node_scan_alerts(state: HeatSyncState) -> Dict[str, Any]:
 
 def node_compute_workload_dispatch(state: HeatSyncState) -> Dict[str, Any]:
     """Recommends compute job shifting when local site is in expensive DX cooling."""
-    curr_mode = state["current_metrics"]["recommended_mode"]
+    curr_mode = state["current_metrics"].get("recommended_mode", "")
     dispatch_rec = None
     
     if curr_mode == "Mechanical Chiller (DX)":
         available = list_available_facilities()
         for alt_fac in available:
             if alt_fac != state["facility_name"]:
-                _, alt_df = load_facility_json(alt_fac)
-                alt_df = apply_cooling_rules(alt_df)
-                alt_row = alt_df[alt_df["hour"] == state["selected_hour"]].iloc[0]
-                
-                if alt_row["recommended_mode"] in ["Free-Air Economizer", "Direct Evaporative"]:
-                    dispatch_rec = {
-                        "target_facility": alt_fac.upper(),
-                        "target_mode": alt_row["recommended_mode"],
-                        "target_apparent_temp": alt_row["apparent_temperature_celsius"],
-                        "recommendation": f"Shift non-urgent batch/AI jobs to {alt_fac.upper()} (operating under {alt_row['recommended_mode']} at {alt_row['apparent_temperature_celsius']}°C) to avoid peak chiller demand charges."
-                    }
-                    break
+                try:
+                    _, alt_df = load_facility_json(alt_fac)
+                    alt_df = apply_cooling_rules(alt_df)
+                    alt_hour_df = alt_df[alt_df["hour"] == state["selected_hour"]]
+                    alt_row = alt_hour_df.iloc[0] if not alt_hour_df.empty else alt_df.iloc[0]
+                    
+                    if alt_row["recommended_mode"] in ["Free-Air Economizer", "Direct Evaporative"]:
+                        dispatch_rec = {
+                            "target_facility": alt_fac.upper(),
+                            "target_mode": alt_row["recommended_mode"],
+                            "target_apparent_temp": alt_row["apparent_temperature_celsius"],
+                            "recommendation": f"Shift non-urgent batch/AI jobs to {alt_fac.upper()} (operating under {alt_row['recommended_mode']} at {alt_row['apparent_temperature_celsius']}°C) to avoid peak chiller demand charges."
+                        }
+                        break
+                except Exception:
+                    continue
                     
     return {"dispatch_recommendation": dispatch_rec}
 
 def node_synthesize_narrative(state: HeatSyncState) -> Dict[str, Any]:
-    curr = state["current_metrics"]
     kpis = state["kpis"]
     meta = state["facility_meta"]
+    curr = state["current_metrics"]
     
     google_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY", "")
     

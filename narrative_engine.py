@@ -28,8 +28,8 @@ def generate_risk_narrative(current_row: dict, kpis: dict, facility_meta: dict) 
         """)
     ])
 
-    # Try popular active Gemini models in order of capability & availability
-    models_to_try = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-pro"]
+    # Try Gemini models in order of capability & availability
+    models_to_try = ["gemini-3.7-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
     
     for model_name in models_to_try:
         try:

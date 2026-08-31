@@ -105,12 +105,12 @@ code, kbd, samp, pre {
 
 /* KPI & Metric Cards in Dark Mode */
 .kpi-card {
-    background: #111827;
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.03); /* Glassmorphism subtle tint */
+    border: none; /* Remove harsh default borders */
+    border-radius: 8px; /* Smooth rounded corners */
     padding: 1.1rem 1.2rem;
-    box-shadow: var(--shadow-xs);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    box-shadow: none; /* Remove default shadow for a flatter look */
+    transition: background 0.2s ease, transform 0.2s ease;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -118,8 +118,15 @@ code, kbd, samp, pre {
 }
 
 .kpi-card:hover {
-    border-color: var(--border-strong);
-    box-shadow: var(--shadow-sm);
+    background: rgba(255, 255, 255, 0.05); /* Slight hover glow */
+}
+
+/* Override default st.metric styling if it sneaks in */
+[data-testid="stMetric"] {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
 }
 
 .kpi-card.highlight {
@@ -278,8 +285,18 @@ code, kbd, samp, pre {
 
 [data-testid="stSidebar"] .block-container {
     padding-top: 1.5rem !important;
-    padding-left: 1.25rem !important;
-    padding-right: 1.25rem !important;
+    padding-left: 1.1rem !important;
+    padding-right: 1.1rem !important;
+}
+
+/* Tidy Sidebar: Shrink dropdowns to act like navigation */
+[data-testid="stSelectbox"] div[data-baseweb="select"] {
+    font-size: 0.82rem !important;
+    border-radius: 6px !important;
+}
+[data-testid="stSelectbox"] label {
+    font-size: 0.75rem !important;
+    margin-bottom: 2px !important;
 }
 
 .sidebar-section-title {
@@ -358,6 +375,30 @@ code, kbd, samp, pre {
     border-radius: var(--radius-md) !important;
 }
 
+/* Fix broken Streamlit Expander toggle icons (e.g. keyboard_arrow_right, _arrow_right_) */
+[data-testid="stExpanderToggleIcon"] {
+    color: transparent !important;
+    font-size: 0 !important;
+    position: relative;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-testid="stExpanderToggleIcon"]::after {
+    content: "\203A";
+    font-size: 1.5rem !important;
+    color: #F8FAFC !important;
+    position: absolute;
+    transition: transform 0.2s ease;
+}
+
+[data-testid="stExpander"][open] [data-testid="stExpanderToggleIcon"]::after {
+    transform: rotate(90deg);
+}
+
 /* Map legend badge overlay */
 .map-legend-box {
     background: rgba(17, 24, 39, 0.85);
@@ -368,4 +409,60 @@ code, kbd, samp, pre {
     margin-top: 0.75rem;
 }
 
+/* Sidebar collapse/expand button fix (Streamlit 1.34+ Support) */
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarExpandButton"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 6px !important;
+    background: #1E293B !important;
+    border: 1px solid #334155 !important;
+    transition: background 0.15s ease, border-color 0.15s ease !important;
+    box-shadow: var(--shadow-sm) !important;
+    color: transparent !important; /* Hide original broken text */
+    position: relative !important;
+    overflow: hidden !important;
+}
 
+[data-testid="stSidebarCollapseButton"]:hover,
+[data-testid="stSidebarExpandButton"]:hover {
+    background: #334155 !important;
+    border-color: #38BDF8 !important;
+}
+
+/* Hide the child span that contains the broken "keyboard_double_arrow_X" text */
+[data-testid="stSidebarCollapseButton"] *,
+[data-testid="stSidebarExpandButton"] * {
+    color: transparent !important;
+    font-size: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Inject custom chevron left for collapse */
+[data-testid="stSidebarCollapseButton"]::after {
+    content: "\2039";
+    font-size: 1.6rem !important;
+    color: #F8FAFC !important;
+    line-height: 1 !important;
+    position: absolute;
+    display: block !important;
+}
+
+/* Inject custom chevron right for expand */
+[data-testid="stSidebarExpandButton"]::after {
+    content: "\203A";
+    font-size: 1.6rem !important;
+    color: #F8FAFC !important;
+    line-height: 1 !important;
+    position: absolute;
+    display: block !important;
+}
+
+/* Fix generic material icon leakage globally just in case */
+.material-icons, .material-symbols-rounded {
+    font-family: 'Material Symbols Rounded', sans-serif !important;
+}

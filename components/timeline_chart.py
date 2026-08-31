@@ -52,8 +52,8 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
             y=plot_df["plot_app_temp"],
             name=f"Apparent Temp ({temp_unit})",
             mode="lines+markers",
-            line=dict(color="#0284C7", width=2.5),
-            marker=dict(size=6, color="#0284C7", symbol="circle", line=dict(width=1.5, color="#FFFFFF")),
+            line=dict(color="#38BDF8", width=2.5),
+            marker=dict(size=6, color="#38BDF8", symbol="circle", line=dict(width=1.5, color="#111827")),
             hovertemplate=(
                 f"<b>Time</b>: %{{x}}<br>"
                 f"<b>Apparent Temp</b>: %{{y:.1f}}{temp_unit}<br>"
@@ -87,7 +87,7 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
             x=curr_time_label,
             line_width=2,
             line_dash="solid",
-            line_color="#0F172A",
+            line_color="#94A3B8",
         )
         fig.add_annotation(
             x=curr_time_label,
@@ -97,7 +97,7 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
             arrowhead=2,
             ax=0,
             ay=-35,
-            bgcolor="#0F172A",
+            bgcolor="#1E293B",
             font=dict(size=10, color="#FFFFFF", family="Inter, sans-serif"),
             opacity=0.9,
             borderpad=4,
@@ -110,7 +110,7 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
             x=s_row["timestamp"],
             line_width=1.2,
             line_dash="dash",
-            line_color="#DC2626" if "Mechanical" in s_row["recommended_mode"] else "#059669",
+            line_color="#E11D48" if "Mechanical" in s_row["recommended_mode"] else "#059669",
         )
 
     # Layout styling
@@ -118,6 +118,7 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
     max_temp = plot_df["plot_app_temp"].max() + 4.0
 
     fig.update_layout(
+        template="plotly_dark",
         title=dict(
             text="<b>24-Hour Diurnal Forecast & Cooling Dispatch</b>",
             font=dict(size=13, color="#F8FAFC", family="Inter, sans-serif"),
@@ -126,8 +127,8 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
         ),
         margin=dict(l=45, r=45, t=45, b=35),
         height=360,
-        plot_bgcolor="#111827",
-        paper_bgcolor="#111827",
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
         legend=dict(
             orientation="h",
             yanchor="bottom",
@@ -161,5 +162,5 @@ def render_12h_timeline(df: pd.DataFrame, unit_pref: str = "Celsius (°C)", sele
         hovermode="x unified",
     )
 
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
 

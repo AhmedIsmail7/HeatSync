@@ -3,12 +3,15 @@ import json
 from data_pipeline import fetch_facility_data, FACILITY_REGISTRY
 from cooling_engine import apply_cooling_rules
 from orchestration_graph import app as graph_app
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def run_live_test():
-    # 1. Grab current live UTC time
     now_utc = datetime.now(timezone.utc)
     current_date = now_utc.strftime("%Y-%m-%d")
     current_time = now_utc.strftime("%H:00")
+    selected_hour = now_utc.hour
     
     print("=" * 60)
     print(f"HEATSYNC REAL-TIME LIVE INGESTION TEST")
@@ -28,8 +31,7 @@ def run_live_test():
             )
             
             # Extract current hour readings
-            current_hour = now_utc.hour
-            row = df[df["hour"] == current_hour].iloc[0] if "hour" in df.columns else df.iloc[0]
+            row = df[df["hour"] == selected_hour].iloc[0]
             
             t_app = row.get("apparent_temperature_celsius", row.get("T_apparent"))
             t_wb = row.get("wet_bulb_temperature_celsius", row.get("T_wb"))
@@ -51,7 +53,7 @@ def run_live_test():
     
     initial_state = {
         "facility_name": "ASHBURN",
-        "selected_hour": now_utc.hour,
+        "selected_hour": selected_hour,
         "facility_meta": FACILITY_REGISTRY["ASHBURN"],
         "date_str": current_date,
         "time_str": current_time,
